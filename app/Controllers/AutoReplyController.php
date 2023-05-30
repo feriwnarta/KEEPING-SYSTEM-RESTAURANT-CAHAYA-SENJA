@@ -129,13 +129,13 @@ class AutoReplyController
 
 
 
-                        $dateTime = date('Y-m-d');
+                        $time = date('Y-m-d H:i:s');
 
                         $message_response = "
     Daftar Simpanan Bir Anda
     Cahaya Senja Caffe & eatery
     ----------------------------------------
-    Tgl: {$dateTime}
+    Tgl: {$time}
     ----------------------------------------
                         ";
 
@@ -361,7 +361,7 @@ Nomor telpon :
             $this->db->bindData(':product_count', $dataInputKeeping[3]);
         }
 
-        $datetime = date('Y-m-d h:i:s');
+        $datetime = date('Y-m-d H:i:s');
 
 
         if ($this->db->execute()) {
