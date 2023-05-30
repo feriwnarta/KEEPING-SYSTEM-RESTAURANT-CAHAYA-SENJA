@@ -67,6 +67,10 @@ class AutoReplyController
             $response = [];
             $message_response = null;
 
+            if($isGroup) {
+                return;
+            }
+
 
 
             if ($message == '1') {
@@ -119,42 +123,45 @@ class AutoReplyController
                     // jika formatnya sudah sesuai
                     if (count($dataInputKeeping) == 4) {
                         $message_response =  $this->saveProductKeeping($dataInputKeeping);
+                    } else if (count($dataInputKeeping) == 1) {
+                        $phoneNumber = $this->extractValuesForSeeKeeping($message);
+                        $dataKeeping = $this->getUserProductKeeping($phoneNumber);
+
+
+
+                        $dateTime = date('Y-m-d');
+
+                        $message_response = "
+    Daftar Simpanan Bir Anda
+    Cahaya Senja Caffe & eatery
+    ----------------------------------------
+    Tgl: {$dateTime}
+    ----------------------------------------
+                        ";
+
+                        if ($dataKeeping != null && count($dataKeeping) > 0) {
+                            foreach ($dataKeeping as $data) {
+                                $message_response .= "
+    ----------------------------------------
+    Tanggal = {$data['create_at']}
+    Kode = {$data['code']}
+    Nama Minuman = {$data['product_name']}
+    Jumlah = {$data['product_count']}
+    Status = {$data['status']}
+    -----------------------------------------
+                                ";
+                            }
+                        }
+                        // data keeping kosong
+                        else {
+                            $message_response = 'Tidak ada minuman yang disimpan';
+                        }
                     } else {
                         $message_response = 'Ada kesalahan format dalam pengetikan, pastikan format sudah sesuai';
                     }
                 } else {
 
-                    // ini akan dijalankan untuk mengambil jumlah keeping user
-                    $phoneNumber = $this->extractValuesForSeeKeeping($message);
-                    $dataKeeping = $this->getUserProductKeeping($phoneNumber);
-
-                    $dateTime = date('Y-m-d');
-
-                    $message_response = "
-Daftar Simpanan Bir Anda
-Cahaya Senja Caffe & eatery
-----------------------------------------
-Tgl: {$dateTime}
-----------------------------------------
-                    ";
-
-                    if ($dataKeeping != null && count($dataKeeping) > 0) {
-                        foreach ($dataKeeping as $data) {
-                            $message_response .= "
-----------------------------------------
-Tanggal = {$data['create_at']}
-Kode = {$data['code']}
-Nama Minuman = {$data['product_name']}
-Jumlah = {$data['product_count']}
-Status = {$data['status']}
------------------------------------------
-                            ";
-                        }
-                    }
-                    // data keeping kosong
-                    else {
-                        $message_response = $this->showMenu();
-                    }
+                    $message_response = $this->showMenu();
                 }
 
 
@@ -170,11 +177,21 @@ Status = {$data['status']}
             // set response code - 200 success
             http_response_code(200);
 
-            // send one or multiple replies to AutoResponder
-            echo json_encode(array("replies" => $response));
 
-            // or this instead for no reply:
-            // echo json_encode(array("replies" => array()));
+            if ($message == '1K' || $message == '1k') {
+                echo json_encode(array("replies" => $response));
+            } else if ($message == '2K' || $message == '2k') {
+                echo json_encode(array("replies" => $response));
+            } else {
+                echo json_encode(
+                    array(
+                        "replies" =>
+                        array(
+                            $response
+                        )
+                    )
+                );
+            }
         }
 
         // tell the user json data is incomplete
@@ -196,15 +213,14 @@ Status = {$data['status']}
     private function showMenu()
     {
         $message = "
-        Terimakasih telah menghubungi Cahaya Senja
-        Silahkan pilih menu yang anda inginkan.
-        1. Lokasi Tempat 
-        2. Jam Operator 
-        3. Menu
-        4. Promo
-        5. Simpanan Bir
+Terimakasih telah menghubungi Cahaya Senja
+Silahkan pilih menu yang anda inginkan.
+1. Lokasi Tempat 
+2. Jam Operator 
+3. Menu
+4. Promo
+5. Simpanan Bir
         ";
-
         return $message;
     }
 
@@ -216,15 +232,15 @@ Status = {$data['status']}
 
     private function replyJamOperator()
     {
-        $message = "Cahaya senja buka setiap hari dari jam 09.00 s/d 00.00
-        cahaya senja";
+        $message = "Cahaya senja buka setiap hari dari jam 09.00 s/d 00.00";
         return $message;
     }
 
     private function replyMenu()
     {
-        $message = "1. BAKMI GORENG
-        2. BALSO RUDAL";
+        $message = "
+1. BAKMI GORENG
+2. BALSO RUDAL";
         return $message;
     }
 
@@ -237,8 +253,8 @@ Status = {$data['status']}
     private function replyKeeping()
     {
         $message = "
-        1K. Simpan Sisa Bir
-        2K. Lihat Simpanan Bir 
+1K. Simpan Sisa Bir
+2K. Lihat Simpanan Bir 
         ";
         return $message;
     }
@@ -246,10 +262,10 @@ Status = {$data['status']}
     private function replySimpanSisaBir()
     {
         $message = '
-        Nomor telpon :
-        Nama :    
-        Nama Minuman:   
-        Jumlah :   
+Nomor telpon : 
+Nama : 
+Nama Minuman: 
+Jumlah : 
         ';
         return $message;
     }
@@ -257,7 +273,7 @@ Status = {$data['status']}
     private function replyLihatSimpananBir()
     {
         $message = '
-        Nomor telpon :
+Nomor telpon :
         ';
         return $message;
     }
@@ -270,33 +286,20 @@ Status = {$data['status']}
 
     function extractValuesFromString(string $string)
     {
-        $delimiter = ',';
-
         $patterns = array(
-            '/Nomor Telpon:\s*([^\\r\\n]+)/i',
-            '/Nama:\s*([^\\r\\n]+)/i',
-            '/Nama minuman:\s*([^\\r\\n]+)/i',
-            '/Jumlah:\s*([^\\r\\n]+)/i'
+            '/Nomor Telpon\s*:\s*([^:\r\n]+)/i',
+            '/Nama\s*:\s*([^:\r\n]+)/i',
+            '/Nama Minuman\s*:\s*([^:\r\n]+)/i',
+            '/Jumlah\s*:\s*([^:\r\n]+)/i'
         );
 
         $values = array();
 
-        // Periksa keberadaan pemisah koma
-        if (strpos($string, $delimiter) !== false) {
-            // Jika ada pemisah koma, gunakan pola regex
-            foreach ($patterns as $pattern) {
-                preg_match($pattern, $string, $matches);
+        foreach ($patterns as $pattern) {
+            preg_match($pattern, $string, $matches);
+            if (isset($matches[1])) {
                 $value = trim($matches[1]);
                 $values[] = $value;
-            }
-        } else {
-            // Jika tidak ada pemisah koma, ambil nilai langsung dari string
-            foreach ($patterns as $pattern) {
-                preg_match($pattern, $string, $matches);
-                if (isset($matches[1])) {
-                    $value = trim($matches[1]);
-                    $values[] = $value;
-                }
             }
         }
 
@@ -305,10 +308,13 @@ Status = {$data['status']}
 
     function extractValuesForSeeKeeping(string $string)
     {
-        $pattern = '/Nomor telpon\s*:\s*([^\\r\\n]+)/i';
+        $pattern = '/Nomor telpon\s*:\s*([^:\r\n]+)/i';
         preg_match($pattern, $string, $matches);
-        $value = isset($matches[1]) ? trim($matches[1]) : null;
-        return $value;
+        $phoneNumber = isset($matches[1]) ? trim($matches[1]) : null;
+
+        $phoneNumber = strtok($phoneNumber, ' ');
+
+        return $phoneNumber;
     }
 
     private function extractValues($string)
@@ -355,26 +361,26 @@ Status = {$data['status']}
             $this->db->bindData(':product_count', $dataInputKeeping[3]);
         }
 
-        $datetime = date('Y-m-d');
+        $datetime = date('Y-m-d h:i:s');
 
 
         if ($this->db->execute()) {
 
             $detail = "
-            Detail Simpan Sisa Bir
-            Cahaya Senja Coffee and Eatery
-            ----------------------
-            Tanggal = {$datetime}
-            Kode = {$code}
-            ----------------------
-            Nama Produk Yang Disimpan = {$dataInputKeeping[2]}
-            Jumlah = {$dataInputKeeping[3]}
-            Kode Verifikasi = {$code_verify}
+Detail Simpan Sisa Bir
+Cahaya Senja Coffee and Eatery
+--------------------------------
+Tanggal = {$datetime}
+Kode = {$code}
+--------------------------------
+Nama Produk Yang Disimpan = {$dataInputKeeping[2]}
+Jumlah = {$dataInputKeeping[3]}
+Kode Verifikasi = {$code_verify}
 
-            Note: Berikan kode verifikasi kepada pelayan saat anda 
-            menyerahkan barang yang disimpan.
-            Terima kasih
-            ----------------------
+Note: Berikan kode verifikasi kepada pelayan saat anda 
+menyerahkan barang yang disimpan.
+Terima kasih
+--------------------------------
             ";
 
             return $detail;
@@ -404,6 +410,7 @@ Status = {$data['status']}
     private function getUserProductKeeping($phoneNumber)
     {
 
+
         if (isset($phoneNumber) && $phoneNumber != null) {
 
             $query = "SELECT code, phone_number, product_name, product_count, status, create_at FROM tb_user_keeping WHERE phone_number = :phone AND status = 'Menunggu' || status = 'Diserahkan' ORDER BY create_at";
@@ -413,6 +420,8 @@ Status = {$data['status']}
             $this->db->bindData(':phone', $phoneNumber);
 
             $result = $this->db->fetchAll();
+
+
 
             return $result;
         }
