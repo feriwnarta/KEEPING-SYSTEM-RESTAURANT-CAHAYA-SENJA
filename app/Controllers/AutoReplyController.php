@@ -67,7 +67,7 @@ class AutoReplyController
             $response = [];
             $message_response = null;
 
-            if($isGroup) {
+            if ($isGroup) {
                 return;
             }
 
@@ -129,13 +129,13 @@ class AutoReplyController
 
 
 
-                        $time = date('Y-m-d H:i:s');
+                        $dateTime = date('Y-m-d');
 
                         $message_response = "
     Daftar Simpanan Bir Anda
     Cahaya Senja Caffe & eatery
     ----------------------------------------
-    Tgl: {$time}
+    Tgl: {$dateTime}
     ----------------------------------------
                         ";
 
@@ -361,7 +361,9 @@ Nomor telpon :
             $this->db->bindData(':product_count', $dataInputKeeping[3]);
         }
 
-        $datetime = date('Y-m-d H:i:s');
+        $datetime = date('Y-m-d h:i:s');
+
+        echo $datetime;
 
 
         if ($this->db->execute()) {
