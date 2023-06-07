@@ -10,6 +10,7 @@ require __DIR__ . '/../vendor/autoload.php';
 Router::add('POST', '/reply', AutoReplyController::class, 'request');
 Router::add('GET', '/', MainController::class, 'index');
 Router::add('GET', '/input-keeping', KeepingController::class, 'index');
+Router::add('POST', '/get-all-menu', KeepingController::class, 'getMenu');
 
 Router::run();
 

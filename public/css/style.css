@@ -4,6 +4,8 @@
 
 @import "https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700";
 
+  
+
 .btn-primary {
     background-color: rgb(243, 113, 31);
     border: none;
@@ -140,6 +142,11 @@ input.quantity {
     border-top-right-radius: 6px;
     border-bottom-right-radius: 6px;
     border-bottom-left-radius: 0px;
+}
+
+.delete {
+    border-radius: 0px;
+    background-color: rgb(238, 32, 32) !important;
 }
 
 .plus:hover {

@@ -4,7 +4,7 @@ namespace NextG\Autoreply\App;
 
 class Router
 {
-    private static array $routes = [];
+    private static $routes = [];
 
 
     public static function add(string $method, string $path, string $controller, string $function, array $middleware = []): void
