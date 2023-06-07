@@ -1,7 +1,7 @@
 <div class="container">
     <div class="row">
         <div class="col-sm-7">
-            <form action="processRegister" method="POST" class="">
+            <div class="">
                 <div class="form-floating mb-4 ">
                     <input type="text" class="form-control" id="floatingInput" placeholder="name@example.com" name="inputUsername" required>
                     <label for="floatingInput">Nama Customer</label>
@@ -27,7 +27,7 @@
                                 <div class="list-product">
                                     <div class="row">
                                         <div class="col-12 item" id="1">
-                                            <div class="d-flex flex-row align-items-center justify-content-between" >
+                                            <div class="d-flex flex-row align-items-center justify-content-between">
                                                 <div class="prdct">
                                                     <img src="https://www.static-src.com/wcsstore/Indraprastha/images/catalog/full//101/MTA-2199881/anker_anker-bir-botol-minuman-alkohol--620-ml-_full02.jpg" alt="" srcset="" width="80" class="me-2">
                                                     Anker
@@ -63,7 +63,7 @@
 
                                     <div class="row">
                                         <div class="col-12 item" id="2">
-                                            <div class="d-flex flex-row align-items-center justify-content-between" >
+                                            <div class="d-flex flex-row align-items-center justify-content-between">
                                                 <div class="prdct">
                                                     <img src="https://www.static-src.com/wcsstore/Indraprastha/images/catalog/full//101/MTA-2199881/anker_anker-bir-botol-minuman-alkohol--620-ml-_full02.jpg" alt="" srcset="" width="80" class="me-2">
                                                     Anker
@@ -113,7 +113,7 @@
                 </div>
 
                 <button type="submit" id="submit-btn" class="btn btn-primary container btn-block mt-4 mb-5">Kirim</button>
-            </form>
+            </div>
         </div>
     </div>
 </div>
