@@ -4,11 +4,11 @@ namespace NextG\Autoreply\Controllers;
 
 use NextG\Autoreply\App\View;
 
-class MainController
+class KeepingController
 {
 
     public function index()
     {
-        View::render('main');
+        View::render('main', 'keeping/input-keeping');
     }
 }

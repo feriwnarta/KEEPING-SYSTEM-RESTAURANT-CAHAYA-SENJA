@@ -4,9 +4,19 @@
 
 @import "https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700";
 
+.btn-primary {
+    background-color: rgb(243, 113, 31);
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: rgb(255, 234, 225);
+    color: rgb(243, 113, 31);
+}
+
 
 .navbar {
-    padding: 15px 10px;
+    /* padding: 15px 10px; */
     background: #fff;
     border: none;
     border-radius: 0;
@@ -47,8 +57,36 @@
     z-index: 1;
 }
 
+.sidebar-header {
+    padding: 20px;
+}
+
 #sidebar.active {
     margin-left: -250px;
+}
+
+.link-menu {
+    padding: 10px;
+    color: rgb(243, 113, 31);
+
+}
+
+
+li.active {
+    background-color: rgb(243, 113, 31);
+    border-radius: 6px;
+    color: white !important;
+    font-weight: bold;
+}
+
+li {
+    padding: 5px 10px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+}
+
+li:not(.active):hover {
+    background-color: rgb(255, 234, 225);
 }
 
 a[data-toggle="collapse"] {
@@ -67,6 +105,82 @@ a[data-toggle="collapse"] {
     min-height: 100vh;
     transition: all 0.3s;
 }
+
+/* ---------------------------------------------------
+    WRAPPER STYLE
+----------------------------------------------------- */
+#wrapper {
+    margin: 25px;
+}
+
+
+/* ---------------------------------------------------
+    INPUT STYLE
+----------------------------------------------------- */
+.form-floating label {
+    font-size: 14px;
+    padding: 12px;
+}
+
+.form-floating input {
+    height: 50px !important;
+}
+
+.inline-group {
+    max-width: 200px;
+
+}
+
+input.quantity {
+    border-radius: 0px;
+}
+
+.plus {
+    border-top-left-radius: 0px;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-bottom-left-radius: 0px;
+}
+
+.plus:hover {
+    background-color: rgba(238, 149, 85, 0.867);
+}
+
+.minus:hover {
+    background-color: rgba(238, 149, 85, 0.867);
+}
+
+.minus {
+
+    border-top-left-radius: 6px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+    border-bottom-left-radius: 6px;
+
+}
+
+
+.number-input button {
+    background-color: rgb(243, 113, 31);
+}
+
+.inline-group .form-control {
+    text-align: right;
+}
+
+.check {
+    width: 35px;
+    height: 35px;
+
+    margin: 0px;
+}
+
+.form-control[type="number"]::-webkit-inner-spin-button,
+.form-control[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 
 /* ---------------------------------------------------
     MEDIAQUERIES
