@@ -7,4 +7,6 @@ class Configuration {
     public static $DB_USER = 'root';
     public static $DB_NAME = 'autoreply_senja';
     public static $DB_PASS = '';
+
+    public static $ROOT = 'http://localhost/autoreply/';
 }

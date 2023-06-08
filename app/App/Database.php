@@ -7,7 +7,7 @@ use PDOException;
 
 class Database
 {
-    private $conn;
+    public $conn;
     private $statement;
 
     public function __construct()
@@ -27,8 +27,11 @@ class Database
 
     public function query($query)
     {
+        if ($this->conn->inTransaction()) {
+            $this->conn->rollBack();
+        }
+
         $this->statement = $this->conn->prepare($query);
-        $this->conn->beginTransaction();
     }
 
     public function bindData($key, $value)
@@ -55,10 +58,8 @@ class Database
     {
         try {
             $result = $this->statement->execute();
-            $this->conn->commit();
             return $result;
         } catch (PDOException $e) {
-            $this->conn->rollBack();
             throw $e; // Melempar kembali exception untuk penanganan kesalahan
         }
     }

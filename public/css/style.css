@@ -4,7 +4,7 @@
 
 @import "https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700";
 
-  
+
 
 .btn-primary {
     background-color: rgb(243, 113, 31);
@@ -187,6 +187,16 @@ input.quantity {
     -webkit-appearance: none;
     margin: 0;
 }
+
+
+/* ---------------------------------------------------
+    TABLE STYLE
+----------------------------------------------------- */
+#tableKeeping tbody tr:hover {
+    background-color: #f9fafb;
+    cursor: pointer;
+}
+
 
 
 /* ---------------------------------------------------

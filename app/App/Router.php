@@ -36,9 +36,11 @@ class Router
 
         foreach (self::$routes as $route) {
 
-            // cocokan path dari url sesuai tidak dengan route yang sudah kita bikin
 
+            // cocokan path dari url sesuai tidak dengan route yang sudah kita bikin
             $pattern = "#^" . $route['path'] . "$#";
+
+
 
             if (preg_match($pattern, $path, $mathces) && $method == $route['method']) {
                 // panggil middleware terlebih dahulu sebagai interceptor
@@ -47,6 +49,7 @@ class Router
                     $instance->before();
                 }
 
+
                 // ambil function
                 $function = $route['function'];
 
@@ -54,6 +57,8 @@ class Router
                 $controller = new $route['controller'];
 
                 array_shift($mathces);
+
+
 
 
                 call_user_func_array([$controller, $function], $mathces);
