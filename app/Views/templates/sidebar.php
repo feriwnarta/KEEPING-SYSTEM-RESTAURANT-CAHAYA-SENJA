@@ -17,7 +17,7 @@
      <div class="link-menu">
          <ul class="navbar-nav">
              <li class="nav-item active">
-                 <a class="nav-link" aria-current="page" href="<?= Configuration::$ROOT; ?>keeping">Keeping</a>
+                 <a class="nav-link" aria-current="page" href="<?= Configuration::$ROOT; ?>">Keeping</a>
              </li>
              <li class="nav-item">
                  <a class="nav-link" href="<?= Configuration::$ROOT; ?>input-keeping">Input Keeping</a>

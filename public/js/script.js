@@ -24,9 +24,12 @@ $(function () {
   if ($("#tableKeeping").length) {
     $("#tableKeeping").DataTable({
       searching: true,
+      order: [[1, "DESC"]],
       paging: true,
       ordering: true,
       responsive: true,
+      select: true,
     });
   }
 });
+

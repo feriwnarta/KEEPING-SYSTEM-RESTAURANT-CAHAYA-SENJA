@@ -8,7 +8,7 @@ use PDOException;
 class Database
 {
     public $conn;
-    private $statement;
+    public $statement;
 
     public function __construct()
     {
@@ -27,10 +27,6 @@ class Database
 
     public function query($query)
     {
-        if ($this->conn->inTransaction()) {
-            $this->conn->rollBack();
-        }
-
         $this->statement = $this->conn->prepare($query);
     }
 

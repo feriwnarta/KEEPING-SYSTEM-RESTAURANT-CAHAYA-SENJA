@@ -17,12 +17,41 @@ function updateKeeping() {
       count: count,
     };
 
+    let jsonData = JSON.stringify(data);
+
     $.ajax({
       type: "POST",
-      url: "procesUpdate",
-      data: data,
+      url: "process-update",
+      data: jsonData,
       dataType: "JSON",
-      success: function (response) {},
+      success: function (response) {
+        // if(response.star)
+        if (response.status_code == 200 && response.status == "success") {
+          Swal.fire({
+            icon: "success",
+            title: "Data berhasil diupdate",
+            showConfirmButton: true,
+            didClose: () => {
+              location.reload();
+            },
+          });
+        }
+      },
+      error: function (xhr, status, error) {
+        // Handle error response
+        if (xhr.status === 400) {
+          if (JSON.parse(xhr.responseText).message == "data gagal diupdate") {
+            Swal.fire({
+              icon: "error",
+              title: "Data gagal diupdate",
+              showConfirmButton: true,
+              didClose: () => {
+                location.reload();
+              },
+            });
+          }
+        }
+      },
     });
   });
 }
