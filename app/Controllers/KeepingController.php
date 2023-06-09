@@ -366,41 +366,72 @@ class KeepingController
 
         $phoneNumber = $obj['phoneNumber'];
         $productId = $obj['productId'];
+        $id = $obj['id'];
         $val = $obj['val'];
+        $idHistoryKeeping = Uuid::generate()->string;
+        $status = 'OUT';
 
-        $query = 'SELECT id_keeping, phone_number,cust_name, product_count, id_product, tanggal_input FROM tb_user_keeping WHERE phone_number = :phone_number AND id_product = :id_product GROUP BY code ORDER BY tanggal_input ASC;';
+
+        $query = 'SELECT id_keeping, product_count FROM tb_user_keeping WHERE id_keeping = :id_keeping';
 
         $this->database->query($query);
-        $this->database->bindData(':phone_number', $phoneNumber);
-        $this->database->bindData(':id_product', $productId);
-        $this->database->execute();
+        $this->database->bindData(':id_keeping', $id);
+        $productCount = $this->database->fetch();
 
-        $rs = $this->database->fetchAll();
+        if ($productCount != false) {
+            $count = $productCount['product_count'];
+
+            $total = $count - $val;
+            $dateTimeNow = date('Y-m-d h:i:s');
+
+            $query = 'UPDATE tb_user_keeping SET product_count = :product_count, update_at = :update_at WHERE id_keeping = :id';
+
+            try {
+                $this->database->conn->beginTransaction();
+                $this->database->query($query);
+                $this->database->bindData(':id', $id);
+                $this->database->bindData(':product_count', $total);
+                $this->database->bindData(':update_at', $dateTimeNow);
+                $this->database->execute();
 
 
-        $format = [];
-        foreach ($rs as $data) {
+                $query = 'INSERT INTO tb_history_keeping (id_history_keeping, id_keeping, status_keeping, count_keeping, tanggal) VALUES (:id_history, :id_keeping, :status_keeping, :count_keeping, :tanggal)';
 
-            if ($data['product_count'] != 0 && $val != 0) {
-                $result = $data['product_count'] - $val;
+                $this->database->query($query);
+                $this->database->bindData(':id_history', $idHistoryKeeping);
+                $this->database->bindData(':id_keeping', $id);
+                $this->database->bindData(':status_keeping', $status);
+                $this->database->bindData(':count_keeping', $val);
+                $this->database->bindData(':tanggal', $dateTimeNow);
+
+                $this->database->execute();
+
+                $this->database->conn->commit();
 
 
 
-                if ($result < 0) {
-                    $total = 0;
-                    $val = abs($result);
-                } else {
-                    $total = $result;
-                    $total = 0;
+                http_response_code(200);
+                echo json_encode([
+                    'status_code' => 200,
+                    'status' => 'success',
+                    'message' => 'berhasil keluarkan barang',
+                ], JSON_PRETTY_PRINT);
+            } catch (PDOException $e) {
+                if ($this->database->conn->inTransaction()) {
+                    $this->database->conn->rollBack();
                 }
 
-                $format[] = [
-                    'id' => $data['id_keeping'],
-                    'total' => $total
-                ];
+                http_response_code(400);
+                echo json_encode([
+                    'status_code' => 400,
+                    'status' => 'failed',
+                    'message' => 'gagal keluarkan barang',
+                ], JSON_PRETTY_PRINT);
             }
         }
 
-        echo json_encode($format);
+
+
+        // echo json_encode($format);
     }
 }

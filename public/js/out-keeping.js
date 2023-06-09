@@ -1,5 +1,9 @@
+let id = "";
+
+$(function () {});
+
 function outKeeping(obj) {
-  let id = obj.getAttribute("value");
+  id = obj.getAttribute("value");
 
   let data = {
     id: id,
@@ -27,16 +31,16 @@ function outKeeping(obj) {
     
                       <div class="item d-flex flex-row align-items-center">
                           <div class="number-input d-flex flex-row">
-                              <button class="btn minus" onclick="stepDown(event, this)">
+                              <button class="btn minus" onclick="stepDown(event, this, ${response.body.product_count})">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" class="bi bi-dash" viewBox="0 0 16 16">
                                       <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z" stroke="white" stroke-width="1"></path>
                                   </svg>
     
                               </button>
     
-                              <input class="quantity form-control" min="0" name="quantity" value="${response.body.product_count}" type="number">
+                              <input id="quantity-input" class="quantity form-control" min="0" name="quantity" value="${response.body.product_count}" type="number">
     
-                              <button class="btn  plus" onclick="stepUp(event, this)">
+                              <button class="btn  plus" onclick="stepUp(event, this, ${response.body.product_count})">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" class="bi bi-plus" viewBox="0 0 16 16">
                                       <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" stroke="white" stroke-width="1"></path>
                                   </svg>
@@ -54,20 +58,40 @@ function outKeeping(obj) {
         `;
 
       $(".list-product").html(html);
+
+      quantityChange(response.body.product_count);
     },
   });
 }
 
-function stepUp(event, button) {
-  event.preventDefault();
-  var input = button.parentNode.querySelector("input.quantity");
-  input.stepUp();
+function quantityChange(val) {
+  $("#quantity-input").on("input", function () {
+    let realVal = $("#quantity-input").val();
+
+    if (realVal > val || realVal < 1) {
+      $("#quantity-input").val("");
+    }
+  });
 }
 
-function stepDown(event, button) {
+function stepUp(event, button, val) {
   event.preventDefault();
   var input = button.parentNode.querySelector("input.quantity");
-  input.stepDown();
+  let realVal = $("#quantity-input").val();
+
+  if (realVal < val) {
+    input.stepUp();
+  }
+}
+
+function stepDown(event, button, val) {
+  event.preventDefault();
+  var input = button.parentNode.querySelector("input.quantity");
+  let realVal = $("#quantity-input").val();
+
+  if (realVal > 1) {
+    input.stepDown();
+  }
 }
 
 function processOut() {
@@ -89,7 +113,37 @@ function processOut() {
     data: data,
     dataType: "JSON",
     success: function (response) {
+      if (
+        response.status == "success" &&
+        response.message == "berhasil keluarkan barang"
+      ) {
+        Swal.fire({
+          icon: "success",
+          title: "Berhasil keluarkan barang",
+          showConfirmButton: true,
+
+          didClose: () => {
+            location.reload();
+          },
+        });
+      }
+
       console.log(response);
+    },
+    error: function (xhr, status, error) {
+      // Handle error response
+      if (xhr.status === 400) {
+        if (JSON.parse(xhr.responseText).message == "gagal keluarkan barang") {
+          Swal.fire({
+            icon: "error",
+            title: "Gagal keluarkan barang",
+            showConfirmButton: true,
+            didClose: () => {
+              location.reload();
+            },
+          });
+        }
+      }
     },
   });
 }
