@@ -34,7 +34,7 @@ function outKeeping(obj) {
     
                               </button>
     
-                              <input class="quantity form-control" min="0" name="quantity" value="${response.body.total_product_count}" type="number">
+                              <input class="quantity form-control" min="0" name="quantity" value="${response.body.product_count}" type="number">
     
                               <button class="btn  plus" onclick="stepUp(event, this)">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" class="bi bi-plus" viewBox="0 0 16 16">

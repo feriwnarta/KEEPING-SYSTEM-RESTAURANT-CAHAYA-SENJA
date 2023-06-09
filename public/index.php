@@ -11,6 +11,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 Router::add('POST', '/reply', AutoReplyController::class, 'request');
 Router::add('GET', '/input-keeping', KeepingController::class, 'index');
+Router::add('POST', '/check-phone-number', KeepingController::class, 'checkPhoneNumber');
 Router::add('POST', '/get-all-menu', KeepingController::class, 'getMenu');
 Router::add('POST', '/save-keeping', KeepingController::class, 'saveKeeping');
 Router::add('GET', '/', KeepingController::class, 'showKeeping');

@@ -44,29 +44,124 @@ class KeepingController
         $json = file_get_contents('php://input');
         $obj = json_decode($json, true);
 
-        $query = 'INSERT INTO tb_user_keeping (id_keeping, code, phone_number, cust_name, product_count, id_product, tanggal_input) VALUES (:id_keeping, :code, :phone_number, :cust_name, :product_count, :id_product, :tanggal_input)';
+
 
         try {
-            $this->database->conn->beginTransaction();
-            foreach ($obj as $row) {
-                $uuid = Uuid::generate()->string;
-                $code = $this->generateKode();
 
+            foreach ($obj as $row) {
+                $this->database->conn->beginTransaction();
+
+
+                $idProduct = $row['id'];
+                $custPhoneNumber = $row['custPhoneNumber'];
                 $tanggal = date("Y-m-d", strtotime($row['tanggal']));
 
-                $this->database->query($query);
-                $this->database->bindData(':id_keeping', $uuid);
-                $this->database->bindData(':code', $code);
-                $this->database->bindData(':phone_number', $row['custPhoneNumber']);
-                $this->database->bindData(':cust_name', $row['custName']);
-                $this->database->bindData(':product_count', $row['count']);
-                $this->database->bindData(':id_product', $row['id']);
-                $this->database->bindData(':tanggal_input', $tanggal);
+                // query check nomor telpon
 
-                $rs = $this->database->execute();
+                $query = 'SELECT cust_name, product_count FROM tb_user_keeping WHERE phone_number = :phone';
+                $this->database->query($query);
+                $this->database->bindData(':phone', $custPhoneNumber);
+                $checkPhoneUser = $this->database->fetch();
+                if ($checkPhoneUser != false) {
+                    if ($checkPhoneUser['cust_name'] != $row['custName']) {
+                        http_response_code(400);
+                        echo json_encode([
+                            'status' => 'failed',
+                            'message' => 'nama tidak boleh berbeda dengan nama yang sebelumnya',
+                            'status_code' => 400
+                        ], JSON_PRETTY_PRINT);
+                        die();
+                    }
+                }
+
+
+
+
+                /**
+                 * query check sudah ada data terlebih dahulu
+                 */
+                $query = 'SELECT id_keeping, id_product, product_count FROM tb_user_keeping WHERE phone_number = :phone_number AND id_product = :id_product';
+
+                $this->database->query($query);
+                $this->database->bindData(':phone_number', $custPhoneNumber);
+                $this->database->bindData(':id_product', $idProduct);
+                $dataExist = $this->database->fetch();
+
+
+
+
+                if (!$dataExist) {
+
+                    /**
+                     * query insert data jika didalam table tidak ada datanya
+                     */
+                    $query = 'INSERT INTO tb_user_keeping (id_keeping, phone_number, cust_name, product_count, id_product) VALUES (:id_keeping, :phone_number, :cust_name, :product_count, :id_product)';
+
+                    $uuid = Uuid::generate()->string;
+
+
+                    $this->database->query($query);
+                    $this->database->bindData(':id_keeping', $uuid);
+                    $this->database->bindData(':phone_number', $row['custPhoneNumber']);
+                    $this->database->bindData(':cust_name', $row['custName']);
+                    $this->database->bindData(':product_count', $row['count']);
+                    $this->database->bindData(':id_product', $row['id']);
+                    $this->database->execute();
+
+
+                    $idHistoryKeeping = Uuid::generate()->string;
+                    $status_keeping = 'IN';
+
+
+                    $query = 'INSERT INTO tb_history_keeping (id_history_keeping, id_keeping, status_keeping, count_keeping, tanggal) VALUES (:id_history, :id_keeping, :status_keeping, :count_keeping, :tanggal)';
+
+                    $this->database->query($query);
+                    $this->database->bindData(':id_history', $idHistoryKeeping);
+                    $this->database->bindData(':id_keeping', $uuid);
+                    $this->database->bindData(':status_keeping', $status_keeping);
+                    $this->database->bindData(':tanggal', $tanggal);
+                    $this->database->bindData(':count_keeping', $row['count']);
+                    $this->database->execute();
+
+                    $this->database->conn->commit();
+                } else {
+
+                    $id_keeping = $dataExist['id_keeping'];
+                    $dateTimeNow = date('Y-m-d h:i:s');
+                    $total = $row['count'] + $dataExist['product_count'];
+
+                    /**
+                     * query update data  didalam table  ada datanya
+                     */
+
+                    $query = 'UPDATE tb_user_keeping SET product_count = :product_count, update_at = :update_at WHERE id_keeping = :id_keeping';
+
+                    $this->database->query($query);
+                    $this->database->bindData(':product_count', $total);
+                    $this->database->bindData(':update_at', $dateTimeNow);
+                    $this->database->bindData(':id_keeping', $id_keeping);
+
+                    $this->database->execute();
+
+
+                    $query = 'INSERT INTO tb_history_keeping (id_history_keeping, id_keeping, status_keeping, count_keeping, tanggal) VALUES (:id_history, :id_keeping, :status_keeping, :count_keeping, :tanggal)';
+
+                    $idHistoryKeeping = Uuid::generate()->string;
+                    $status_keeping = 'IN';
+                    $this->database->query($query);
+                    $this->database->bindData(':id_history', $idHistoryKeeping);
+                    $this->database->bindData(':id_keeping', $id_keeping);
+                    $this->database->bindData(':status_keeping', $status_keeping);
+                    $this->database->bindData(':tanggal', $tanggal);
+                    $this->database->bindData(':count_keeping', $row['count']);
+                    $this->database->execute();
+
+                    $this->database->conn->commit();
+                }
             }
 
-            $this->database->conn->commit();
+
+
 
             http_response_code(200);
             echo json_encode([
@@ -87,6 +182,22 @@ class KeepingController
                 'status_code' => 400
             ], JSON_PRETTY_PRINT);
         }
+    }
+
+    function checkPhoneNumber()
+    {
+        $json = file_get_contents('php://input');
+        $obj = json_decode($json, true);
+
+        $phoneNumber = $obj['phoneNumber'];
+
+        $query = 'SELECT cust_name FROM tb_user_keeping WHERE phone_number LIKE :phone';
+        $this->database->query($query);
+        $this->database->bindData(':phone', "%$phoneNumber%");
+        $rs = $this->database->fetch();
+
+
+        echo json_encode($rs, JSON_PRETTY_PRINT);
     }
 
     function generateKode()
@@ -111,7 +222,7 @@ class KeepingController
 
     function showKeeping()
     {
-        $query = 'SELECT k.id_keeping, k.tanggal_input AS tanggal,  k.phone_number as nomor_telpon, k.cust_name as cust_name, k.id_product as id_produk, m.name as nama_produk, SUM(k.product_count) AS product_count
+        $query = 'SELECT k.id_keeping AS id_keeping,  k.phone_number as nomor_telpon, k.cust_name as cust_name, k.id_product as id_produk, m.name as nama_produk, k.product_count as product_count
         FROM tb_user_keeping AS k
         INNER JOIN tb_menu AS m ON k.id_product = m.id_menu
         GROUP BY k.id_product, k.phone_number;';
@@ -211,7 +322,7 @@ class KeepingController
 
         $id = $obj['id'];
 
-        $query = 'SELECT k.id_keeping, k.phone_number, k.cust_name, m.name, m.thumbnail, m.id_menu, t.total_product_count FROM tb_user_keeping AS k INNER JOIN tb_menu AS m ON k.id_product = m.id_menu INNER JOIN ( SELECT phone_number, SUM(product_count) AS total_product_count FROM tb_user_keeping WHERE id_keeping = :id OR phone_number =(SELECT phone_number FROM tb_user_keeping WHERE id_keeping = "0be325f0-066d-11ee-98a4-9716a0d01759") GROUP BY phone_number) AS t ON k.phone_number = t.phone_number WHERE k.id_keeping = :id ORDER BY k.id_keeping ASC;;
+        $query = 'SELECT k.id_keeping, k.phone_number, k.product_count, k.cust_name, m.name, m.thumbnail, m.id_menu FROM tb_user_keeping AS k INNER JOIN tb_menu AS m ON k.id_product = m.id_menu WHERE id_keeping = :id;
         ';
 
         try {
@@ -241,6 +352,7 @@ class KeepingController
             http_response_code(400);
             echo json_encode([
                 'status' => 'failed',
+                'message' => $e->getMessage(),
                 'status_code' => 400
             ]);
         }

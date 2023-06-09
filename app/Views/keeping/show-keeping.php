@@ -15,7 +15,6 @@
             <table id="tableKeeping" class="ui celled table ">
                 <thead>
                     <tr>
-                        <th>Tanggal</th>
                         <th>Nomor telpon</th>
                         <th>Nama</th>
                         <th>Produk</th>
@@ -29,16 +28,15 @@
 
                     <?php foreach ($data as $row) { ?>
                         <tr id="?= $row['id_keeping']; ?>">
-                            <td><?= $row['tanggal']; ?></td>
                             <td><?= $row['nomor_telpon']; ?></td>
                             <td><?= $row['cust_name']; ?></td>
                             <td><?= $row['nama_produk']; ?></td>
                             <td><?= $row['product_count']; ?></td>
-                            <td style="width: 200px;">
+                            <td style="width: 110px;">
 
-                                <a href="update-keeping/<?= $row['id_keeping']; ?>">
+                                <!-- <a href="update-keeping/<?= $row['id_keeping']; ?>">
                                     <button type="button" class="btn btn-success">Update</button>
-                                </a>
+                                </a> -->
 
                                 <button type="button" class="btn btn-danger" id="outKeeping" data-bs-toggle="modal" data-bs-target="#modalOutKeeping" value="<?= $row['id_keeping']; ?>" onclick="outKeeping(this)">Out Keeping</button>
 

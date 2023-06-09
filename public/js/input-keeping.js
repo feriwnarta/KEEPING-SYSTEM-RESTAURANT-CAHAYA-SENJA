@@ -3,15 +3,35 @@ $(function () {
   setKeepingInputDate();
   btnPilihMinumanCliced();
   infiniteLoadingPagination();
-
- 
+  whenPhoneNumberInputActive();
 });
 
 let data = [];
 let keepingTemp = [];
 let dataPaging = [];
-
 let start = 0;
+
+function whenPhoneNumberInputActive() {
+  $(".input-cust-number-phone").on("input", function () {
+    let val = $(this).val();
+
+    let jsonData = JSON.stringify({ phoneNumber: val });
+
+    $.ajax({
+      type: "POST",
+      url: "check-phone-number",
+      data: jsonData,
+      dataType: "JSON",
+      success: function (response) {
+        if (response != false) {
+          $(".input-name-cust").val(response.cust_name);
+        } else {
+          $(".input-name-cust").val("");
+        }
+      },
+    });
+  });
+}
 
 function setKeepingInputDate() {
   // Mendapatkan tanggal hari ini
@@ -206,6 +226,19 @@ function sendButtonKeepingClicked() {
             Swal.fire({
               icon: "error",
               title: "Data gagal disimpan",
+              showConfirmButton: true,
+              didClose: () => {
+                location.reload();
+              },
+            });
+          } else if (
+            JSON.parse(xhr.responseText).message ==
+            "nama tidak boleh berbeda dengan nama yang sebelumnya"
+          ) {
+            Swal.fire({
+              icon: "error",
+              title:
+                "Nama tidak boleh beda dengan nama yang sudah diinput menggunakan nomor ini",
               showConfirmButton: true,
               didClose: () => {
                 location.reload();

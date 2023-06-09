@@ -10,18 +10,20 @@ use NextG\Autoreply\App\Configuration;
         <div class="col-sm-7">
             <form class="form-keeping">
                 <div class="form-floating mb-4">
-                    <input type="date" class="form-control" id="floatingDate" placeholder=" " required va>
+                    <input type="date" class="form-control" id="floatingDate" placeholder=" " required>
                     <label for="floatingDate">Tanggal</label>
+                </div>
+
+                <div class="form-floating mb-4 ">
+                    <input type="number" class="form-control input-cust-number-phone" id="floatingInput" placeholder="name@example.com" name="inputPhoneNumber" required>
+                    <label for="floatingInput">Nomor Telpon</label>
                 </div>
 
                 <div class="form-floating mb-4 ">
                     <input type="text" class="form-control input-name-cust" id="floatingInput" placeholder="name@example.com" name="inputCustName" required>
                     <label for="floatingInput">Nama Customer</label>
                 </div>
-                <div class="form-floating mb-4 ">
-                    <input type="number" class="form-control input-cust-number-phone" id="floatingInput" placeholder="name@example.com" name="inputPhoneNumber" required>
-                    <label for="floatingInput">Nomor Telpon</label>
-                </div>
+
 
                 <button type="button" class="btn btn-primary container btn-pilih-minuman" data-bs-toggle="modal" data-bs-target="#getMenu">
                     Pilih minuman
