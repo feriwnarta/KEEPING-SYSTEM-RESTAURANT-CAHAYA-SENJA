@@ -31,7 +31,7 @@ class KeepingController
             $start = intval($_POST['start']);
         }
 
-        $query = 'SELECT id_menu, name, thumbnail FROM tb_menu ORDER BY id_menu ASC LIMIT :start , 10 ';
+        $query = 'SELECT id_menu, name, thumbnail FROM tb_menu ORDER BY create_at ASC LIMIT :start , 10 ';
         $this->database->query($query);
         $this->database->bindData(':start', $start);
 

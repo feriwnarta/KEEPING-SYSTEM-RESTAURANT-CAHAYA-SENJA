@@ -56,9 +56,14 @@ function infiniteLoadingPagination() {
         var scrollHeight = $(this).prop("scrollHeight");
         var clientHeight = $(this).prop("clientHeight");
 
-        if (scrollTop + clientHeight >= scrollHeight) {
+        console.log(scrollTop + clientHeight);
+        console.log(scrollHeight);
+        
+
+        if (scrollTop + clientHeight + 1 >= scrollHeight) {
           start = dataPaging.length;
           reqAllMinuman();
+          
         }
       });
   });
@@ -93,7 +98,7 @@ function reqAllMinuman() {
             <div class="col-12 item" id="${element.id_menu}">
                 <div class="d-flex flex-row align-items-center justify-content-between">
                     <div class="prdct">
-                        <img src="${element.thumbnail}" alt="" srcset="" width="80" class="me-2">
+                        <img src="public/menu/${element.thumbnail}" alt="" srcset="" width="80" class="me-2">
                         ${element.name}
                     </div>
   
@@ -240,9 +245,9 @@ function sendButtonKeepingClicked() {
               title:
                 "Nama tidak boleh beda dengan nama yang sudah diinput menggunakan nomor ini",
               showConfirmButton: true,
-              didClose: () => {
-                location.reload();
-              },
+              // didClose: () => {
+              //   location.reload();
+              // },
             });
           }
         }

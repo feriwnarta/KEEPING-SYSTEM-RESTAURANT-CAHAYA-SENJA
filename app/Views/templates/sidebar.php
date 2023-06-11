@@ -22,7 +22,12 @@
              <li class="nav-item">
                  <a class="nav-link" href="<?= Configuration::$ROOT; ?>input-keeping">Input Keeping</a>
              </li>
-
+             <li class="nav-item">
+                 <a class="nav-link" href="<?= Configuration::$ROOT; ?>show-menu">Menu</a>
+             </li>
+             <li class="nav-item">
+                 <a class="nav-link" href="<?= Configuration::$ROOT; ?>input-menu">Input Menu</a>
+             </li>
          </ul>
      </div>
  </nav>
