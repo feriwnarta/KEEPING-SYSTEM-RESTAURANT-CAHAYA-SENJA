@@ -1,4 +1,6 @@
-<?php use NextG\Autoreply\App\Configuration; ?>
+<?php
+
+use NextG\Autoreply\App\Configuration; ?>
 
 <script src="<?= Configuration::$ROOT ?>/public/js/input-menu.js"></script>
 
@@ -11,13 +13,10 @@
                     <img src="public/menu/insert-image.png" class="input-image " alt="" srcset="" width="100" height="100">
                 </div>
                 <div class="form-floating mb-4 ">
-                    <input type="text" class="form-control input-name-menu" id="floatingInput"
-                        placeholder="name@example.com" name="inputNameMenu" required>
+                    <input type="text" class="form-control input-name-menu" id="floatingInput" placeholder="name@example.com" name="inputNameMenu" required>
                     <label for="floatingInput">Nama Menu</label>
-
-                    <button type="submit" id="submit-btn" class="btn btn-primary container btn-block mt-4 mb-5"
-                        onclick="saveMenu()">Simpan Menu</button>
                 </div>
+                <button type="submit" id="submit-btn" class="btn btn-primary container btn-block mt-4 mb-5" onclick="saveMenu()">Simpan Menu</button>
             </form>
         </div>
     </div>

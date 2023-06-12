@@ -19,6 +19,8 @@ Router::add('POST', '/out-keeping', KeepingController::class, 'outKeeping');
 Router::add('POST', '/process-out', KeepingController::class, 'processOut');
 Router::add('GET', '/input-menu', MenuController::class, 'inputMenu');
 Router::add('POST', '/save-menu', MenuController::class, 'saveMenu');
+Router::add('POST', '/update-menu', MenuController::class, 'updateMenu');
+Router::add('POST', '/delete-menu', MenuController::class, 'deleteMenu');
 Router::add('GET', '/show-menu', MenuController::class, 'menu');
 
 Router::run();
