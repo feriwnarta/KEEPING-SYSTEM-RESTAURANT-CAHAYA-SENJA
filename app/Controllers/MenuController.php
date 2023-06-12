@@ -2,9 +2,18 @@
 
 namespace NextG\Autoreply\Controllers;
 
+use Exception;
+use Google\Service\Drive;
+use Google\Service\Drive\DriveFile;
+use Google\Service\Drive\Permission;
+use Google\Service\Drive\PermissionTeamDrivePermissionDetails;
+use Google\Service\Sheets;
+use Google\Service\Sheets\Spreadsheet;
+use Google\Service\Sheets\ValueRange;
+use Google_Client;
 use NextG\Autoreply\App\Database;
 use NextG\Autoreply\App\View;
-use PDO;
+
 use PDOException;
 use Webpatser\Uuid\Uuid;
 
@@ -216,12 +225,78 @@ class MenuController
                     $this->db->conn->rollBack();
                 }
 
-                // http_response_code(400);
+                http_response_code(400);
                 echo json_encode([
                     'status' => 'failed',
                     'message' => 'gagal delete menu'
                 ]);
             }
         }
+    }
+
+    function spreadsheet()
+    {
+
+        // configure the Google Client
+        $client = new Google_Client();
+        $client->setApplicationName('Google Sheets API');
+        $client->setScopes([Sheets::SPREADSHEETS,  Drive::DRIVE_FILE,]);
+        $client->setAccessType('offline');
+        // $client->addScope("https://www.googleapis.com/auth/drive");
+
+        // credentials.json is the key file we downloaded while setting up our Google Sheets API
+        $path = __DIR__ . '/../Config/credentials.json';
+        $client->setAuthConfig($path);
+
+        // configure the Sheets Service
+        $service = new Sheets($client);
+        $serviceDrive = new Drive($client);
+
+        $spreadsheet = new Spreadsheet([
+            'properties' => [
+                'title' => 'My New Spreadsheet'
+            ]
+        ]);
+
+        $spreadsheet = $service->spreadsheets->create($spreadsheet);
+        $spreadsheetId = $spreadsheet->spreadsheetId;
+
+        $data = [
+            ['Name', 'Email'],
+            ['John Doe', 'john@example.com'],
+            ['Jane Smith', 'jane@example.com'],
+            ['Bob Johnson', 'bob@example.com']
+        ];
+
+        $range = 'Sheet1!A1:B' . (count($data) + 1);
+
+        // Bangun objek ValueRange
+        $valueRange = new ValueRange([
+            'values' => $data
+        ]);
+
+        // Buat permintaan untuk memasukkan data
+        $params = [
+            'valueInputOption' => 'USER_ENTERED',
+        ];
+
+        $service->spreadsheets_values->append($spreadsheetId, $range, $valueRange, $params);
+
+        $serviceDrive = new Drive($client);
+        
+
+        $file = new DriveFile(array(
+            'name' => 'Test Folder',
+            'mimeType' => 'application/vnd.google-apps.folder',
+        ));
+
+        $optParams = array(
+            'supportsAllDrives' => true,
+            'fields' => 'id',
+        );
+
+
+        $createdFile = $serviceDrive->files->create($file, $optParams);
+        print "Created Folder: ".$createdFile->id;
     }
 }

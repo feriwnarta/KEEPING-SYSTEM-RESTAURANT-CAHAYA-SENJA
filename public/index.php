@@ -22,5 +22,7 @@ Router::add('POST', '/save-menu', MenuController::class, 'saveMenu');
 Router::add('POST', '/update-menu', MenuController::class, 'updateMenu');
 Router::add('POST', '/delete-menu', MenuController::class, 'deleteMenu');
 Router::add('GET', '/show-menu', MenuController::class, 'menu');
+Router::add('GET', '/sheet', MenuController::class, 'spreadsheet');
+
 
 Router::run();

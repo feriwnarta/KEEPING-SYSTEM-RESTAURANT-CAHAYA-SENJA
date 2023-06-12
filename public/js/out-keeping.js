@@ -17,15 +17,12 @@ function outKeeping(obj) {
     data: jsonData,
     dataType: "JSON",
     success: function (response) {
-      console.log(response);
-      // console.log(response.body.cust_name);
-
       let html = `
         <div class="row" id="${response.body.phone_number}">
               <div class="col-12 item" id="${response.body.id_keeping}">
                   <div class="d-flex flex-row align-items-center justify-content-between">
                       <div class="prdct" id="${response.body.id_menu}">
-                          <img src="${response.body.thumbnail}" alt="" srcset="" width="80" class="me-2">
+                          <img src="public/menu/${response.body.thumbnail}" alt="" srcset="" width="80" class="me-2">
                           ${response.body.name}
                       </div>
     
@@ -66,7 +63,11 @@ function outKeeping(obj) {
 
 function quantityChange(val) {
   $("#quantity-input").on("input", function () {
-    let realVal = $("#quantity-input").val();
+    let realVal = parseInt($("#quantity-input").val());
+
+    if (realVal > val) {
+      $("#quantity-input").val("");
+    }
 
     if (realVal > val || realVal < 1) {
       $("#quantity-input").val("");
@@ -127,8 +128,6 @@ function processOut() {
           },
         });
       }
-
-      console.log(response);
     },
     error: function (xhr, status, error) {
       // Handle error response

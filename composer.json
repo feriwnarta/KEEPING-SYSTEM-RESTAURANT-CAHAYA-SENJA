@@ -13,6 +13,8 @@
         }
     ],
     "require": {
-        "webpatser/laravel-uuid": "^4.0"
+        "webpatser/laravel-uuid": "^4.0",
+        "google/apiclient": "2.0",
+        "guzzlehttp/guzzle": "~5.3.1"
     }
 }

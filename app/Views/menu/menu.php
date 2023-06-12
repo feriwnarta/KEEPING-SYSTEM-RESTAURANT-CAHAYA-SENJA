@@ -28,7 +28,7 @@
                         <tr id="<?= $row['id_menu']; ?>">
                             <td><img src="public/menu/<?= $row['thumbnail']; ?>" width="80px"></td>
                             <td><?= $row['name']; ?></td>
-                            <td style="width: 140px;">
+                            <td style="width: 70px;">
 
                                 <!-- <a href="update-keeping/<?= $row['id_keeping']; ?>">
                                     <button type="button" class="btn btn-success">Update</button>
@@ -36,7 +36,7 @@
 
                                 <button type="button" class="btn btn-success" id="updateKeeping" data-bs-toggle="modal" data-bs-target="#modalOutKeeping" onclick="updateMenu('public/menu/<?= $row['thumbnail']; ?>', '<?= $row['name']; ?>', '<?= $row['id_menu']; ?>' )">Update</button>
 
-                                <button type="button" class="btn btn-danger" id="removeKeeping" onclick="removeMenu('<?= $row['id_menu']; ?>')">Hapus</button>
+                                <!-- <button type="button" class="btn btn-danger" id="removeKeeping" onclick="removeMenu('<?= $row['id_menu']; ?>')">Hapus</button> -->
 
 
                             </td>
