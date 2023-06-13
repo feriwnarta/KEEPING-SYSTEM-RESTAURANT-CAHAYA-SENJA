@@ -27,7 +27,7 @@
 
 
                     <?php foreach ($data as $row) { ?>
-                        <tr id="?= $row['id_keeping']; ?>">
+                        <tr id="<?= $row['id_keeping']; ?>">
                             <td><?= $row['nomor_telpon']; ?></td>
                             <td><?= $row['cust_name']; ?></td>
                             <td><?= $row['nama_produk']; ?></td>
