@@ -95,10 +95,16 @@ function reqAllMinuman() {
             <div class="row">
             <div class="col-12 item" id="${element.id_menu}">
                 <div class="d-flex flex-row align-items-center justify-content-between">
-                    <div class="prdct">
+                    <div class="prdct d-none d-sm-block">
                         <img src="public/menu/${element.thumbnail}" alt="" srcset="" width="80" class="me-2">
                         ${element.name}
                     </div>
+
+                    <div class="prdct d-flex flex-column align-items-center d-sm-none">
+                        <img src="public/menu/${element.thumbnail}" alt="" srcset="" width="80" class="me-2">
+                        <div>${element.name}</div>
+                    </div>
+                    
   
                     <div class="item d-flex flex-row align-items-center">
                         <div class="number-input d-flex flex-row">

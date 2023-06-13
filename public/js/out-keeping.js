@@ -21,10 +21,15 @@ function outKeeping(obj) {
         <div class="row" id="${response.body.phone_number}">
               <div class="col-12 item" id="${response.body.id_keeping}">
                   <div class="d-flex flex-row align-items-center justify-content-between">
-                      <div class="prdct" id="${response.body.id_menu}">
+                      <div class="prdct d-none d-sm-block" id="${response.body.id_menu}">
                           <img src="public/menu/${response.body.thumbnail}" alt="" srcset="" width="80" class="me-2">
                           ${response.body.name}
                       </div>
+
+                    <div class="prdct d-sm-none d-flex flex-column align-items-center" id="${response.body.id_menu}">
+                      <img src="public/menu/${response.body.thumbnail}" alt="" srcset="" width="80" class="me-2">
+                      <div>${response.body.name}</div>
+                    </div>
     
                       <div class="item d-flex flex-row align-items-center">
                           <div class="number-input d-flex flex-row">
