@@ -248,55 +248,26 @@ class MenuController
         $path = __DIR__ . '/../Config/credentials.json';
         $client->setAuthConfig($path);
 
-        // configure the Sheets Service
-        $service = new Sheets($client);
+
+
+        $mimeType = "application/vnd.google-apps.spreadsheet";
         $serviceDrive = new Drive($client);
 
-        $spreadsheet = new Spreadsheet([
-            'properties' => [
-                'title' => 'My New Spreadsheet'
-            ]
-        ]);
+        $driveFile = new DriveFile();
+        $driveFile->setName('test');
+        $driveFile->setMimeType($mimeType);
 
-        $spreadsheet = $service->spreadsheets->create($spreadsheet);
-        $spreadsheetId = $spreadsheet->spreadsheetId;
+        $spreadSheet = $serviceDrive->files->create($driveFile);
+        $spreadSheetId = $spreadSheet->getId();
 
-        $data = [
-            ['Name', 'Email'],
-            ['John Doe', 'john@example.com'],
-            ['Jane Smith', 'jane@example.com'],
-            ['Bob Johnson', 'bob@example.com']
-        ];
+        $permission = new Permission;
+        $permission->setEmailAddress('feriwnarta26@gmail.com');
+        $permission->setType('user');
+        $permission->setRole('writer');
 
-        $range = 'Sheet1!A1:B' . (count($data) + 1);
+        $serviceDrive->permissions->create($spreadSheetId, $permission);
 
-        // Bangun objek ValueRange
-        $valueRange = new ValueRange([
-            'values' => $data
-        ]);
-
-        // Buat permintaan untuk memasukkan data
-        $params = [
-            'valueInputOption' => 'USER_ENTERED',
-        ];
-
-        $service->spreadsheets_values->append($spreadsheetId, $range, $valueRange, $params);
-
-        $serviceDrive = new Drive($client);
-        
-
-        $file = new DriveFile(array(
-            'name' => 'Test Folder',
-            'mimeType' => 'application/vnd.google-apps.folder',
-        ));
-
-        $optParams = array(
-            'supportsAllDrives' => true,
-            'fields' => 'id',
-        );
-
-
-        $createdFile = $serviceDrive->files->create($file, $optParams);
-        print "Created Folder: ".$createdFile->id;
+        $spreadsheet_url = "https://docs.google.com/spreadsheets/d/" . $spreadSheetId . "/edit";
+        print($spreadsheet_url);
     }
 }
