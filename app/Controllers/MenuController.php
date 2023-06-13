@@ -2,18 +2,10 @@
 
 namespace NextG\Autoreply\Controllers;
 
-use Exception;
-use Google\Service\Drive;
-use Google\Service\Drive\DriveFile;
-use Google\Service\Drive\Permission;
-use Google\Service\Drive\PermissionTeamDrivePermissionDetails;
-use Google\Service\Sheets;
-use Google\Service\Sheets\Spreadsheet;
-use Google\Service\Sheets\ValueRange;
-use Google_Client;
+
 use NextG\Autoreply\App\Database;
 use NextG\Autoreply\App\View;
-
+use NextG\Autoreply\Services\SpreadsheetService;
 use PDOException;
 use Webpatser\Uuid\Uuid;
 
@@ -237,37 +229,25 @@ class MenuController
     function spreadsheet()
     {
 
-        // configure the Google Client
-        $client = new Google_Client();
-        $client->setApplicationName('Google Sheets API');
-        $client->setScopes([Sheets::SPREADSHEETS,  Drive::DRIVE_FILE,]);
-        $client->setAccessType('offline');
-        // $client->addScope("https://www.googleapis.com/auth/drive");
+        $spreadSheetService = new SpreadsheetService();
+        // $spreadSheetService->createNewSpreadSheet('tertae', 'feriwnarta26@gmail.com');
+        // $spreadSheetService->makeNewHeaderColumn(
+        //     '1S8iZOVBJetpiJERXeiVHdOZnSXs_jwzpak3a7yHFJZY',
+        //     ['Nama', 'Usia', 'Kota'],
+        //     $range = 'Sheet1!A2:C'
+        // );
 
-        // credentials.json is the key file we downloaded while setting up our Google Sheets API
-        $path = __DIR__ . '/../Config/credentials.json';
-        $client->setAuthConfig($path);
+        // $spreadSheetService->insertNewRow(
+        //     '1zjAujT7oy2fK4u14eYHBbePU0PW3WEsziaQDGt2yiF4',
+        //     ['Nama', 'Usia', 'Kota'],
+        //     ['John Doe', '30', 'New York'],
+        //     ['Jane Smith', '25', 'Los Angeles'],
+        //     ['Bob Johnson', '35', 'Chicago'],
+        //     'Sheet1'
+        // );
 
-
-
-        $mimeType = "application/vnd.google-apps.spreadsheet";
-        $serviceDrive = new Drive($client);
-
-        $driveFile = new DriveFile();
-        $driveFile->setName('test');
-        $driveFile->setMimeType($mimeType);
-
-        $spreadSheet = $serviceDrive->files->create($driveFile);
-        $spreadSheetId = $spreadSheet->getId();
-
-        $permission = new Permission;
-        $permission->setEmailAddress('feriwnarta26@gmail.com');
-        $permission->setType('user');
-        $permission->setRole('writer');
-
-        $serviceDrive->permissions->create($spreadSheetId, $permission);
-
-        $spreadsheet_url = "https://docs.google.com/spreadsheets/d/" . $spreadSheetId . "/edit";
-        print($spreadsheet_url);
+        // $spreadSheetService->update('1S8iZOVBJetpiJERXeiVHdOZnSXs_jwzpak3a7yHFJZY', [
+        //     '085714342528', 'Feri', 'Putao', '5'
+        // ], '085714342528',  'Putao', 'Sheet1!I1:L');
     }
 }

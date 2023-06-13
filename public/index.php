@@ -17,6 +17,7 @@ Router::add('GET', '/update-keeping/([0-9a-zA-Z-]*)', KeepingController::class, 
 Router::add('POST', '/update-keeping/process-update', KeepingController::class, 'processUpdate');
 Router::add('POST', '/out-keeping', KeepingController::class, 'outKeeping');
 Router::add('POST', '/process-out', KeepingController::class, 'processOut');
+Router::add('GET', '/test', KeepingController::class, 'makeSpreadSheet');
 Router::add('GET', '/input-menu', MenuController::class, 'inputMenu');
 Router::add('POST', '/save-menu', MenuController::class, 'saveMenu');
 Router::add('POST', '/update-menu', MenuController::class, 'updateMenu');

@@ -58,12 +58,10 @@ function infiniteLoadingPagination() {
 
         console.log(scrollTop + clientHeight);
         console.log(scrollHeight);
-        
 
         if (scrollTop + clientHeight + 1 >= scrollHeight) {
           start = dataPaging.length;
           reqAllMinuman();
-          
         }
       });
   });
@@ -198,7 +196,8 @@ function sendButtonKeepingClicked() {
 
     $(document).ajaxStart(function () {
       Swal.fire({
-        html: '<div class="spinner-border text-primary" role="status"><span class="sr-only"></span></div>',
+        html: '<div class="spinner-border text-primary" role="status"></div>',
+        showConfirmButton: false,
       });
     });
 
