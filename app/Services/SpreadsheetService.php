@@ -183,4 +183,46 @@ class SpreadsheetService
 
         return false;
     }
+
+    public function updateHistory($spreadSheetId, $data = [], $match1 = '', $match2,  $range = 'Sheet1')
+    {
+        if (!empty($data)) {
+            $sheetService = new Sheets($this->client);
+
+            try {
+                // Ambil data dari Google Sheet
+                $response = $sheetService->spreadsheets_values->get($spreadSheetId, $range);
+                $values = $response->getValues();
+
+                // Pengecekan dan pembaruan pada baris yang sesuai
+                if (!empty($values)) {
+                    foreach ($values as $row => $rowData) {
+                        // Pengecekan nilai pada kolom tertentu (misalnya kolom A)
+                        if ($rowData[1] == $match1 && $rowData[3] == $match2) {
+                            // Lakukan pembaruan pada baris yang sesuai
+                            $values[$row] = $data;
+                        }
+                    }
+
+                    // Update data di Google Sheet
+                    $valueRange = new ValueRange();
+                    $valueRange->setValues($values);
+                    $options = ['valueInputOption' => 'USER_ENTERED'];
+                    $sheetService->spreadsheets_values->update($spreadSheetId, $range, $valueRange, $options);
+                }
+
+                return true;
+            } catch (Google_Service_Exception $e) {
+                // Tangani exception jika terjadi kesalahan dari Google Sheets API
+                echo "Terjadi kesalahan: " . $e->getMessage();
+                return false;
+            } catch (Exception $e) {
+                // Tangani exception jika terjadi kesalahan lainnya
+                echo "Terjadi kesalahan: " . $e->getMessage();
+                return false;
+            }
+        }
+
+        return false;
+    }
 }

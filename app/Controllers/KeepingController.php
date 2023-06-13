@@ -529,11 +529,12 @@ class KeepingController
         $status = 'OUT';
 
 
-        $query = 'SELECT id_keeping, product_count FROM tb_user_keeping WHERE id_keeping = :id_keeping';
+        $query = 'SELECT id_keeping, product_count, cust_name FROM tb_user_keeping WHERE id_keeping = :id_keeping';
 
         $this->database->query($query);
         $this->database->bindData(':id_keeping', $id);
         $productCount = $this->database->fetch();
+        $custName = $productCount['cust_name'];
 
         if ($productCount != false) {
             $count = $productCount['product_count'];
@@ -551,6 +552,30 @@ class KeepingController
                 $this->database->bindData(':update_at', $dateTimeNow);
                 $this->database->execute();
 
+                // dapatkan nama barang / produk
+                $query = 'SELECT name FROM tb_menu WHERE id_menu = :id';
+                $this->database->query($query);
+                $this->database->bindData(':id', $productId);
+                $nameProduct = $this->database->fetch();
+
+                $dateUpload = date('Y-m');
+                $query = 'SELECT id_google_spreadsheet FROM tb_spreadsheet_version WHERE tanggal = :tanggal';
+                $this->database->query($query);
+                $this->database->bindData(':tanggal', $dateUpload);
+                $result = $this->database->fetch();
+                $idSpreadSheet = $result['id_google_spreadsheet'];
+
+                // update sheet table stock
+                $this->spreadSheetService->update(
+                    $idSpreadSheet,
+                    [
+                        $phoneNumber, $custName, $nameProduct['name'], $total
+                    ],
+                    $phoneNumber,
+                    $nameProduct['name'],
+                    'Sheet1!I1:L'
+                );
+
 
                 $query = 'INSERT INTO tb_history_keeping (id_history_keeping, id_keeping, status_keeping, count_keeping, tanggal) VALUES (:id_history, :id_keeping, :status_keeping, :count_keeping, :tanggal)';
 
@@ -564,6 +589,15 @@ class KeepingController
                 $this->database->execute();
 
                 $this->database->conn->commit();
+
+                $dateTimeNow = date('Y-m-d');
+
+                // update sheet table history
+                $this->spreadSheetService->insertNewRow($idSpreadSheet, [
+                    [
+                        $dateTimeNow, $phoneNumber, $custName, $nameProduct['name'], $status, $val
+                    ]
+                ], 'Sheet1!A1:F');
 
 
 

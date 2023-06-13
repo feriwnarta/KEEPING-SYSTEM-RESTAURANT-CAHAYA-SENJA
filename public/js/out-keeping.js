@@ -108,6 +108,12 @@ function processOut() {
     val: val,
   });
 
+  $(document).ajaxStart(function () {
+    Swal.fire({
+      html: '<div class="spinner-border text-primary" role="status"><span class="sr-only"></span></div>',
+    });
+  });
+
   $.ajax({
     type: "POST",
     url: "process-out",

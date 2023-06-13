@@ -196,8 +196,7 @@ function sendButtonKeepingClicked() {
 
     $(document).ajaxStart(function () {
       Swal.fire({
-        html: '<div class="spinner-border text-primary" role="status"></div>',
-        showConfirmButton: false,
+        html: '<div class="spinner-border text-primary" role="status"><span class="sr-only"></span></div>',
       });
     });
 
