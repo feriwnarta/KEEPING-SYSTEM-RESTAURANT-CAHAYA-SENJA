@@ -56,9 +56,6 @@ function infiniteLoadingPagination() {
         var scrollHeight = $(this).prop("scrollHeight");
         var clientHeight = $(this).prop("clientHeight");
 
-        console.log(scrollTop + clientHeight);
-        console.log(scrollHeight);
-
         if (scrollTop + clientHeight + 1 >= scrollHeight) {
           start = dataPaging.length;
           reqAllMinuman();

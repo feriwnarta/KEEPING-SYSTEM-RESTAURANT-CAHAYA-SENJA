@@ -372,17 +372,17 @@ class KeepingController
 
     function showKeeping()
     {
-        $query = 'SELECT k.id_keeping AS id_keeping,  k.phone_number as nomor_telpon, k.cust_name as cust_name, k.id_product as id_produk, m.name as nama_produk, k.product_count as product_count
-        FROM tb_user_keeping AS k
-        INNER JOIN tb_menu AS m ON k.id_product = m.id_menu
-        GROUP BY k.id_product, k.phone_number;';
-
-        // $query = 'SELECT k.id_keeping AS id_keeping, k.phone_number as nomor_telpon, k.cust_name as cust_name, k.id_product as id_produk, m.name as nama_produk, k.product_count as product_count
+        // $query = 'SELECT k.id_keeping AS id_keeping,  k.phone_number as nomor_telpon, k.cust_name as cust_name, k.id_product as id_produk, m.name as nama_produk, k.product_count as product_count
         // FROM tb_user_keeping AS k
         // INNER JOIN tb_menu AS m ON k.id_product = m.id_menu
-        // WHERE k.product_count <> 0
-        // GROUP BY k.id_product, k.phone_number
-        // ';
+        // GROUP BY k.id_product, k.phone_number;';
+
+        $query = 'SELECT k.id_keeping AS id_keeping, k.phone_number as nomor_telpon, k.cust_name as cust_name, k.id_product as id_produk, m.name as nama_produk, k.product_count as product_count
+        FROM tb_user_keeping AS k
+        INNER JOIN tb_menu AS m ON k.id_product = m.id_menu
+        WHERE k.product_count <> 0
+        GROUP BY k.id_product, k.phone_number
+        ';
 
 
         $this->database->query($query);
