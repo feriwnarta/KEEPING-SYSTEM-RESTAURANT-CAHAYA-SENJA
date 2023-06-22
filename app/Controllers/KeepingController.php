@@ -372,12 +372,57 @@ class KeepingController
 
                         break;
 
+                    case 'dapatkan status barang':
+                        $allStatus = $this->getStatusProduct($idHistoryKeeping);
+                        $format = '';
+                        if (!empty($allStatus)) {
+
+                            foreach ($allStatus as $status) {
+                                // $message = str_replace("{$rs['option_name']}", "{$status['name']} => {$status['in']}", $message);
+                                $format .= "{$status['name']} => {$status['status_keeping']}, ";
+                            }
+                        }
+                        $message = str_replace("{$rs['option_name']}", $format, $message);
+                        break;
+
 
                     case 'dapatkan tanggal penyimpanan':
+                        $tanggalPenyimpanan = $this->getTanggalPenyimpanan($idHistoryKeeping[0]);
+
+                        $tanggal = null;
+                        if (!empty($tanggalPenyimpanan)) {
+                            $tanggal .= $tanggalPenyimpanan['create_at'];
+                        }
+
+                        $message = str_replace("{$rs['option_name']}", $tanggal, $message);
+
                         break;
                 }
             }
         }
+
+        var_dump($message);
+    }
+
+    function getTanggalPenyimpanan($idHistoryKeeping)
+    {
+
+
+        $query = "SELECT m.name, h.status_keeping, h.count_keeping, h.tanggal, h.create_at, u.phone_number, u.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON u.id_keeping = h.id_keeping INNER JOIN tb_menu AS m ON m.id_menu = u.id_product WHERE h.id_history_keeping = '{$idHistoryKeeping}'";
+        $this->database->query($query);
+        return $this->database->fetch();
+    }
+
+    function getStatusProduct($idHistoryKeeping)
+    {
+        $data = [];
+        foreach ($idHistoryKeeping as $id) {
+            $query = "SELECT m.name, h.status_keeping, h.count_keeping, h.tanggal, u.phone_number, u.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON u.id_keeping = h.id_keeping INNER JOIN tb_menu AS m ON m.id_menu = u.id_product WHERE h.id_history_keeping = '{$id}'";
+            $this->database->query($query);
+            $data[] = $this->database->fetch();
+        }
+
+        return $data;
     }
 
     function getNameProductKeeping($idHistoryKeeping)
