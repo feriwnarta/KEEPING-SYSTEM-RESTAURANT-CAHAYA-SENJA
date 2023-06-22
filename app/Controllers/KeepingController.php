@@ -5,6 +5,7 @@ namespace NextG\Autoreply\Controllers;
 use NextG\Autoreply\App\Database;
 use NextG\Autoreply\App\View;
 use NextG\Autoreply\Services\SpreadsheetService;
+use NextG\Autoreply\Services\WhatsappBlastService;
 use PDOException;
 use Webpatser\Uuid\Uuid;
 
@@ -12,13 +13,14 @@ class KeepingController
 {
 
     private $database;
-
     private $spreadSheetService;
+    private $whatsappService;
 
     public function __construct()
     {
         $this->database = new Database;
         $this->spreadSheetService =  new SpreadsheetService();
+        $this->whatsappService = new WhatsappBlastService();
     }
 
 
@@ -47,7 +49,7 @@ class KeepingController
 
         $json = file_get_contents('php://input');
         $obj = json_decode($json, true);
-
+        $dataMessageKeeping = [];
 
 
 
@@ -122,6 +124,7 @@ class KeepingController
                     $idHistoryKeeping = Uuid::generate()->string;
                     $status_keeping = 'IN';
 
+                    $dataMessageKeeping[] = $idHistoryKeeping;
 
                     $query = 'INSERT INTO tb_history_keeping (id_history_keeping, id_keeping, status_keeping, count_keeping, tanggal) VALUES (:id_history, :id_keeping, :status_keeping, :count_keeping, :tanggal)';
 
@@ -156,6 +159,9 @@ class KeepingController
                     $query = 'INSERT INTO tb_history_keeping (id_history_keeping, id_keeping, status_keeping, count_keeping, tanggal) VALUES (:id_history, :id_keeping, :status_keeping, :count_keeping, :tanggal)';
 
                     $idHistoryKeeping = Uuid::generate()->string;
+
+                    $dataMessageKeeping[] = $idHistoryKeeping;
+
                     $status_keeping = 'IN';
                     $this->database->query($query);
                     $this->database->bindData(':id_history', $idHistoryKeeping);
@@ -278,16 +284,18 @@ class KeepingController
                 }
             }
 
-
-
-
-
             http_response_code(200);
             echo json_encode([
                 'status' => 'success',
                 'message' => 'data berhasil disimpan',
                 'status_code' => 200
             ], JSON_PRETTY_PRINT);
+
+
+
+
+            // send message to whatsapp
+            $result = $this->sendSuccessMessageToCust($custPhoneNumber, 'BERHASIL SIMPAN');
         } catch (PDOException $e) {
 
             if ($this->database->conn->inTransaction()) {
@@ -302,6 +310,160 @@ class KeepingController
             ], JSON_PRETTY_PRINT);
         }
     }
+
+    function messageFormat()
+    {
+        $idHistoryKeeping = [
+            '0106cea0-09be-11ee-a4b5-fb4f69c770d8',
+            '13f94130-09be-11ee-b7e9-bf146722bb72'
+        ];
+        // dapatkan message dari database
+        $message = $this->getMessageSaveKeeping();
+
+        // ambil option dari message
+        $tags = $this->optionExplode($message);
+
+        if (empty($tags)) {
+            return $message;
+        }
+
+
+
+
+        foreach ($tags as $tag) {
+
+            $query = "SELECT COUNT(id) as count, value_name, option_name FROM tb_config WHERE option_name = '%{$tag}%'  ";
+            $this->database->query($query);
+            $rs = $this->database->fetch();
+
+
+            if ($rs['count'] != 0) {
+
+                switch ($rs['value_name']) {
+                    case 'dapatkan nama customer':
+                        $custName = $this->getCustName($idHistoryKeeping[0]);
+                        $message = str_replace("{$rs['option_name']}", $custName, $message);
+                        break;
+                    case 'dapatkan nomor telpon customer':
+                        $custPhone = $this->getCustPhoneNumber($idHistoryKeeping[0]);
+                        $message = str_replace("{$rs['option_name']}", $custPhone, $message);
+
+                        break;
+                    case 'dapatkan jumlah barang yang disimpan':
+                        $countProductKeeping = $this->getCountProductKeeping($idHistoryKeeping);
+                        $total = 0;
+                        if (!empty($countProductKeeping)) {
+                            foreach ($countProductKeeping as $product) {
+                                $total += $product['count_keeping'];
+                            }
+                        }
+                        $message = str_replace("{$rs['option_name']}", $total, $message);
+                        break;
+                    case 'dapatkan nama barang yang disimpan':
+                        $nameProductKeeping = $this->getNameProductKeeping($idHistoryKeeping);
+
+                        $name = '';
+                        if (!empty($nameProductKeeping)) {
+                            foreach ($nameProductKeeping as $product) {
+                                $name .= $product['name'] . ', ';
+                            }
+                        }
+                        $message = str_replace("{$rs['option_name']}", $name, $message);
+
+                        break;
+
+
+                    case 'dapatkan tanggal penyimpanan':
+                        break;
+                }
+            }
+        }
+    }
+
+    function getNameProductKeeping($idHistoryKeeping)
+    {
+        $data = [];
+        foreach ($idHistoryKeeping as $id) {
+            $query = "SELECT m.name, h.status_keeping, h.count_keeping, h.tanggal, u.phone_number, u.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON u.id_keeping = h.id_keeping INNER JOIN tb_menu AS m ON m.id_menu = u.id_product WHERE h.id_history_keeping = '{$id}'";
+            $this->database->query($query);
+            $data[] = $this->database->fetch();
+        }
+
+        return $data;
+    }
+
+    function getCountProductKeeping($idHistoryKeeping)
+    {
+        $data = [];
+        foreach ($idHistoryKeeping as $id) {
+            $query = "SELECT m.name, h.status_keeping, h.count_keeping, h.tanggal, u.phone_number, u.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON u.id_keeping = h.id_keeping INNER JOIN tb_menu AS m ON m.id_menu = u.id_product WHERE h.id_history_keeping = '{$id}'";
+            $this->database->query($query);
+            $data[] = $this->database->fetch();
+        }
+
+        return $data;
+    }
+
+    function getCustPhoneNumber($idHistoryKeeping)
+    {
+        $query = "SELECT u.phone_number FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON h.id_keeping = u.id_keeping WHERE h.id_history_keeping = '{$idHistoryKeeping}'";
+        $this->database->query($query);
+        $name = $this->database->fetch();
+        if (!empty($name)) {
+            return $name = $name['phone_number'];
+        }
+        return '';
+    }
+
+    function getCustName($idHistoryKeeping)
+    {
+        $query = "SELECT u.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON h.id_keeping = u.id_keeping WHERE h.id_history_keeping = '{$idHistoryKeeping}'";
+        $this->database->query($query);
+        $name = $this->database->fetch();
+        if (!empty($name)) {
+            return $name = $name['cust_name'];
+        }
+        return '';
+    }
+
+
+
+    function optionExplode($string)
+    {
+
+        $pattern = '/%([^%]+)%/'; // Ekspresi reguler untuk mencocokkan teks diapit oleh tanda persen ganda (%%)
+
+        preg_match_all($pattern, $string, $matches);
+
+        $result = $matches[1];
+        return $result;
+    }
+
+    function getMessageSaveKeeping()
+    {
+        $query = 'SELECT value_name FROM tb_config WHERE option_name = "message_success_save_keeping"';
+
+        $this->database->query($query);
+        $result = $this->database->fetch();
+
+        return $result['value_name'];
+    }
+
+
+
+    function sendSuccessMessageToCust($phoneNumber, $message)
+    {
+        // cek dulu device disconnect atau tidak
+        $status = $this->whatsappService->checkDeviceActive();
+
+        if ($status == 'connected') {
+            return $this->whatsappService->sendText($phoneNumber, $message);
+        }
+
+        return false;
+    }
+
+
 
 
     function makeSpreadSheet()

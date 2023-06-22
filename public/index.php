@@ -4,9 +4,11 @@ date_default_timezone_set('asia/jakarta');
 use NextG\Autoreply\App\Router;
 use NextG\Autoreply\Controllers\KeepingController;
 use NextG\Autoreply\Controllers\MenuController;
+use NextG\Autoreply\Controllers\WhatsappBlastController;
 
 require __DIR__ . '/../vendor/autoload.php';
 
+// keeping controller
 Router::add('POST', '/reply', AutoReplyController::class, 'request');
 Router::add('GET', '/input-keeping', KeepingController::class, 'index');
 Router::add('POST', '/check-phone-number', KeepingController::class, 'checkPhoneNumber');
@@ -18,12 +20,19 @@ Router::add('POST', '/update-keeping/process-update', KeepingController::class, 
 Router::add('POST', '/out-keeping', KeepingController::class, 'outKeeping');
 Router::add('POST', '/process-out', KeepingController::class, 'processOut');
 Router::add('GET', '/test', KeepingController::class, 'makeSpreadSheet');
+Router::add('GET', '/sheet', MenuController::class, 'spreadsheet');
+
+// menu controller
 Router::add('GET', '/input-menu', MenuController::class, 'inputMenu');
 Router::add('POST', '/save-menu', MenuController::class, 'saveMenu');
 Router::add('POST', '/update-menu', MenuController::class, 'updateMenu');
 Router::add('POST', '/delete-menu', MenuController::class, 'deleteMenu');
 Router::add('GET', '/show-menu', MenuController::class, 'menu');
-Router::add('GET', '/sheet', MenuController::class, 'spreadsheet');
+
+// whatsapp blast controller
+Router::add('GET', '/check', WhatsappBlastController::class, 'test');
+Router::add('GET', '/new', KeepingController::class, 'messageFormat');
+
 
 
 Router::run();
