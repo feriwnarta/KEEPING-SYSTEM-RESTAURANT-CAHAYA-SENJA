@@ -292,10 +292,10 @@ class KeepingController
             ], JSON_PRETTY_PRINT);
 
 
-
+            $message = $this->messageFormat($dataMessageKeeping);
 
             // send message to whatsapp
-            $result = $this->sendSuccessMessageToCust($custPhoneNumber, 'BERHASIL SIMPAN');
+            $result = $this->sendSuccessMessageToCust($custPhoneNumber, $message);
         } catch (PDOException $e) {
 
             if ($this->database->conn->inTransaction()) {
@@ -311,12 +311,12 @@ class KeepingController
         }
     }
 
-    function messageFormat()
+    function messageFormat($idHistoryKeeping)
     {
-        $idHistoryKeeping = [
-            '0106cea0-09be-11ee-a4b5-fb4f69c770d8',
-            '13f94130-09be-11ee-b7e9-bf146722bb72'
-        ];
+        // $idHistoryKeeping = [
+        //     '0106cea0-09be-11ee-a4b5-fb4f69c770d8',
+        //     '13f94130-09be-11ee-b7e9-bf146722bb72'
+        // ];
         // dapatkan message dari database
         $message = $this->getMessageSaveKeeping();
 
@@ -326,8 +326,6 @@ class KeepingController
         if (empty($tags)) {
             return $message;
         }
-
-
 
 
         foreach ($tags as $tag) {
@@ -397,11 +395,51 @@ class KeepingController
                         $message = str_replace("{$rs['option_name']}", $tanggal, $message);
 
                         break;
+
+                    case 'dapatkan detail barang':
+
+                        /**
+                         * UBAH INI SECARA HARDCODE
+                         */
+                        $details = $this->getDetailPenyimpanan($idHistoryKeeping);
+                        $tanggal = null;
+                        $format = '';
+                        if (!empty($details)) {
+
+                            foreach ($details as $detail) {
+                                $format .= "
+Nama Barang = {$detail['name']}
+Jumlah = {$detail['count_keeping']}
+                                ";
+                                $tanggal = "{$detail['create_at']}";
+                            }
+                            $format .= "
+{$tanggal}";
+                        }
+
+                        $message = str_replace("{$rs['option_name']}", $format, $message);
                 }
             }
         }
 
-        var_dump($message);
+        $pattern = '/%[^%]+%/';
+        $hasil = preg_replace($pattern, '', $message);
+
+
+
+        return $hasil;
+    }
+
+    function getDetailPenyimpanan($idHistoryKeeping)
+    {
+        $data = [];
+        foreach ($idHistoryKeeping as $id) {
+            $query = "SELECT m.name, h.status_keeping, h.count_keeping, h.tanggal, h.create_at, u.phone_number, u.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON u.id_keeping = h.id_keeping INNER JOIN tb_menu AS m ON m.id_menu = u.id_product WHERE h.id_history_keeping = '{$id}'";
+            $this->database->query($query);
+            $data[] = $this->database->fetch();
+        }
+
+        return $data;
     }
 
     function getTanggalPenyimpanan($idHistoryKeeping)
