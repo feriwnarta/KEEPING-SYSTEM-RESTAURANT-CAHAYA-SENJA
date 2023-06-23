@@ -337,7 +337,11 @@ class KeepingController
                 // send message to whatsapp
                 $result = $this->sendSuccessMessageToCust($custPhoneNumber, $message);
 
-                $this->waBlastLog($message, $custPhoneNumber, 'SEND');
+                if ($result) {
+                    $this->waBlastLog($message, $custPhoneNumber, 'SEND');
+                } else {
+                    $this->waBlastLog($message, $custPhoneNumber, 'NOT ACTIVE');
+                }
             } catch (PDOException $e) {
                 $this->waBlastLog($message, $custPhoneNumber, 'FAILED');
             }
@@ -1077,7 +1081,12 @@ class KeepingController
                     $message = $this->messageOutFormat($idHistoryKeeping);
                     // send message to whatsapp
                     $result = $this->sendSuccessMessageToCust($phoneNumber, $message);
-                    $this->waBlastLog($message, $phoneNumber, 'SEND');
+
+                    if ($result) {
+                        $this->waBlastLog($message, $phoneNumber, 'SEND');
+                    } else {
+                        $this->waBlastLog($message, $phoneNumber, 'NOT ACTIVE');
+                    }
                 } catch (PDOException $e) {
                     $this->waBlastLog($message, $phoneNumber, 'FAILED');
                 }

@@ -2,6 +2,7 @@
 date_default_timezone_set('asia/jakarta');
 
 use NextG\Autoreply\App\Router;
+use NextG\Autoreply\Controllers\CustomerController;
 use NextG\Autoreply\Controllers\KeepingController;
 use NextG\Autoreply\Controllers\MenuController;
 use NextG\Autoreply\Controllers\WhatsappBlastController;
@@ -33,6 +34,10 @@ Router::add('GET', '/show-menu', MenuController::class, 'menu');
 Router::add('GET', '/check', WhatsappBlastController::class, 'test');
 Router::add('GET', '/new', KeepingController::class, 'messageFormat');
 
+// customer conrtoller
+Router::add('GET', '/customer', CustomerController::class, 'showCustomer');
+Router::add('POST', '/send-single-message', CustomerController::class, 'sendSingleMessage');
+Router::add('POST', '/send-all-message', CustomerController::class, 'sendAllMessage');
 
 
 Router::run();

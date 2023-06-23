@@ -86,6 +86,27 @@ class WhatsappBlastService
         return $result;
     }
 
+    public function sendMultipleText($payload)
+    {
+        curl_setopt(
+            $this->curl,
+            CURLOPT_HTTPHEADER,
+            array(
+                "Authorization: $this->token",
+                "Content-Type: application/json"
+            )
+        );
+        curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($this->curl, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($this->curl, CURLOPT_URL,  "https://pati.wablas.com/api/v2/send-message");
+        curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, 0);
+        $result = curl_exec($this->curl);
+        $result = json_decode($result, true);
+        return $result['status'];
+    }
+
     private function curlClose()
     {
         curl_close($this->curl);
