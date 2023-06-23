@@ -58,7 +58,9 @@ class KeepingController
             foreach ($obj as $row) {
                 $this->database->conn->beginTransaction();
 
-
+                /**
+                 * data user dari input
+                 */
                 $idProduct = $row['id'];
                 $custPhoneNumber = $row['custPhoneNumber'];
                 $tanggal = date("Y-m-d", strtotime($row['tanggal']));
@@ -68,10 +70,11 @@ class KeepingController
 
 
 
+                /**
+                 * cek nomor telpon terlebih dahulu, jika nomor telpon sama dan nama customer berbeda akan ditolak
+                 */
 
-                // query check nomor telpon
-
-                $query = 'SELECT cust_name, product_count FROM tb_user_keeping WHERE phone_number = :phone';
+                $query = 'SELECT cust_name FROM tb_customer WHERE phone_number = :phone';
                 $this->database->query($query);
                 $this->database->bindData(':phone', $custPhoneNumber);
                 $checkPhoneUser = $this->database->fetch();
@@ -88,10 +91,11 @@ class KeepingController
                 }
 
 
+
                 /**
                  * query check sudah ada data terlebih dahulu
                  */
-                $query = 'SELECT id_keeping, id_product, product_count FROM tb_user_keeping WHERE phone_number = :phone_number AND id_product = :id_product';
+                $query = 'SELECT k.id_keeping, k.id_product, k.product_count FROM tb_user_keeping AS k INNER JOIN tb_customer AS c WHERE c.phone_number = :phone_number AND k.id_product = :id_product';
 
                 $this->database->query($query);
                 $this->database->bindData(':phone_number', $custPhoneNumber);
@@ -99,23 +103,49 @@ class KeepingController
                 $dataExist = $this->database->fetch();
 
 
-
-
-
+                /**
+                 * jika tidak ada simpanan di tb user keeping
+                 * maka buat data baru
+                 */
                 if (!$dataExist) {
+
+                    // insert data customer terlebih dahulu
+                    $idCust = Uuid::generate()->string;
+                    $custName = $row['custName'];
+                    $custPhoneNumber = $row['custPhoneNumber'];
+
+                    // cek customer terlebih dahulu di tb customer
+                    $query = 'SELECT COUNT(id_cust) AS jumlah, id_cust FROM tb_customer WHERE phone_number = :phone AND cust_name = :cust';
+                    $this->database->query($query);
+                    $this->database->bindData(':phone', $custPhoneNumber);
+                    $this->database->bindData(':cust', $custName);
+                    $customer = $this->database->fetch();
+
+                    if ($customer['jumlah'] == 0) {
+                        $query = 'INSERT INTO tb_customer (id_cust, phone_number, cust_name) VALUES(:id, :phone, :cust)';
+
+                        $this->database->query($query);
+                        $this->database->bindData(':id', $idCust);
+                        $this->database->bindData(':cust', $custName);
+                        $this->database->bindData(':phone', $custPhoneNumber);
+                        $this->database->execute();
+                    } else {
+                        $idCust = $customer['id_cust'];
+                    }
+
+
 
                     /**
                      * query insert data jika didalam table tidak ada datanya
                      */
-                    $query = 'INSERT INTO tb_user_keeping (id_keeping, phone_number, cust_name, product_count, id_product) VALUES (:id_keeping, :phone_number, :cust_name, :product_count, :id_product)';
+                    $query = 'INSERT INTO tb_user_keeping (id_keeping, product_count, id_product, id_customer) VALUES (:id_keeping, :product_count, :id_product, :id_cust)';
 
                     $uuid = Uuid::generate()->string;
 
 
                     $this->database->query($query);
                     $this->database->bindData(':id_keeping', $uuid);
-                    $this->database->bindData(':phone_number', $row['custPhoneNumber']);
-                    $this->database->bindData(':cust_name', $row['custName']);
+                    $this->database->bindData(':id_cust', $idCust);
                     $this->database->bindData(':product_count', $row['count']);
                     $this->database->bindData(':id_product', $row['id']);
                     $this->database->execute();
@@ -136,7 +166,14 @@ class KeepingController
                     $this->database->bindData(':count_keeping', $row['count']);
                     $this->database->execute();
                     $this->database->conn->commit();
-                } else {
+                }
+
+                /**
+                 * Jika sudah ada data di table keeping
+                 * maka update jumlah keepingannya saja
+                 */
+
+                else {
 
                     $id_keeping = $dataExist['id_keeping'];
                     $dateTimeNow = date('Y-m-d h:i:s');
@@ -145,7 +182,6 @@ class KeepingController
                     /**
                      * query update data  didalam table  ada datanya
                      */
-
                     $query = 'UPDATE tb_user_keeping SET product_count = :product_count, update_at = :update_at WHERE id_keeping = :id_keeping';
 
                     $this->database->query($query);
@@ -292,15 +328,26 @@ class KeepingController
             ], JSON_PRETTY_PRINT);
 
 
-            $message = $this->messageFormat($dataMessageKeeping);
+            /**
+             * WA BLAST
+             */
+            try {
+                $message = $this->messageFormat($dataMessageKeeping);
 
-            // send message to whatsapp
-            $result = $this->sendSuccessMessageToCust($custPhoneNumber, $message);
+                // send message to whatsapp
+                $result = $this->sendSuccessMessageToCust($custPhoneNumber, $message);
+
+                $this->waBlastLog($message, $custPhoneNumber, 'SEND');
+            } catch (PDOException $e) {
+                $this->waBlastLog($message, $custPhoneNumber, 'FAILED');
+            }
         } catch (PDOException $e) {
 
             if ($this->database->conn->inTransaction()) {
                 $this->database->conn->rollBack();
             }
+
+            var_dump($e);
 
             http_response_code(400);
             echo json_encode([
@@ -311,11 +358,33 @@ class KeepingController
         }
     }
 
+    function waBlastLog($message, $phone, $status)
+    {
+
+        try {
+            $this->database->conn->beginTransaction();
+            $query = 'INSERT INTO tb_blast_log (cust_phone, log_message, log_status) VALUES (:phone, :log_message, :log_status)';
+            $this->database->query($query);
+            $this->database->bindData(':phone', $phone);
+            $this->database->bindData(':log_message', $message);
+            $this->database->bindData(':log_status', $status);
+
+            $this->database->execute();
+
+            $this->database->conn->commit();
+        } catch (PDOException $e) {
+
+            if ($this->database->conn->inTransaction()) {
+                $this->database->conn->rollBack();
+            }
+        }
+    }
+
     function messageFormat($idHistoryKeeping)
     {
         // $idHistoryKeeping = [
-        //     '0106cea0-09be-11ee-a4b5-fb4f69c770d8',
-        //     '13f94130-09be-11ee-b7e9-bf146722bb72'
+        //     'c35e2810-1173-11ee-802b-1bf676aad47f',
+        //     'e3705920-1173-11ee-8676-6dc2650dd4ac',
         // ];
         // dapatkan message dari database
         $message = $this->getMessageSaveKeeping();
@@ -344,6 +413,7 @@ class KeepingController
                         break;
                     case 'dapatkan nomor telpon customer':
                         $custPhone = $this->getCustPhoneNumber($idHistoryKeeping[0]);
+
                         $message = str_replace("{$rs['option_name']}", $custPhone, $message);
 
                         break;
@@ -380,6 +450,7 @@ class KeepingController
                                 $format .= "{$status['name']} => {$status['status_keeping']}, ";
                             }
                         }
+
                         $message = str_replace("{$rs['option_name']}", $format, $message);
                         break;
 
@@ -392,6 +463,7 @@ class KeepingController
                             $tanggal .= $tanggalPenyimpanan['create_at'];
                         }
 
+
                         $message = str_replace("{$rs['option_name']}", $tanggal, $message);
 
                         break;
@@ -403,21 +475,161 @@ class KeepingController
                          */
                         $details = $this->getDetailPenyimpanan($idHistoryKeeping);
                         $tanggal = null;
+
                         $format = '';
                         if (!empty($details)) {
 
                             foreach ($details as $detail) {
-                                $format .= "
-Nama Barang = {$detail['name']}
-Jumlah = {$detail['count_keeping']}
-                                ";
+                                $format .= <<<EOD
+                            \n================================
+                            Nama Barang = {$detail['name']}
+                            Jumlah = {$detail['count_keeping']}
+                            EOD;
                                 $tanggal = "{$detail['create_at']}";
                             }
-                            $format .= "
-{$tanggal}";
+
+                            $format .= <<<EOD
+                            \nTanggal : {$tanggal} 
+                            ================================
+                            EOD;
+                        }
+
+
+                        $message = str_replace("{$rs['option_name']}", $format, $message);
+
+                        break;
+                }
+            }
+        }
+
+        $pattern = '/%[^%]+%/';
+        $hasil = preg_replace($pattern, '', $message);
+
+
+
+        return $hasil;
+    }
+
+
+    function messageOutFormat($idHistoryKeeping)
+    {
+        $query = 'SELECT value_name FROM tb_config WHERE option_name = "message_success_out_keeping"';
+        $this->database->query($query);
+        $message = $this->database->fetch()['value_name'];
+
+
+        // ambil option dari message
+        $tags = $this->optionExplode($message);
+
+
+
+        if (empty($tags)) {
+            return $message;
+        }
+
+        foreach ($tags as $tag) {
+
+            $query = "SELECT COUNT(id) as count, value_name, option_name FROM tb_config WHERE option_name = '%{$tag}%'  ";
+            $this->database->query($query);
+            $rs = $this->database->fetch();
+
+
+
+
+            if ($rs['count'] != 0) {
+
+                switch ($rs['value_name']) {
+                    case 'dapatkan nama customer':
+                        $custName = $this->getCustName($idHistoryKeeping);
+                        $message = str_replace("{$rs['option_name']}", $custName, $message);
+                        break;
+                    case 'dapatkan nomor telpon customer':
+                        $custPhone = $this->getCustPhoneNumber($idHistoryKeeping);
+
+                        $message = str_replace("{$rs['option_name']}", $custPhone, $message);
+
+                        break;
+                    case 'dapatkan jumlah barang yang disimpan':
+                        $countProductKeeping = $this->getCountProductKeeping([$idHistoryKeeping]);
+                        $total = 0;
+                        if (!empty($countProductKeeping)) {
+                            foreach ($countProductKeeping as $product) {
+                                $total += $product['count_keeping'];
+                            }
+                        }
+                        $message = str_replace("{$rs['option_name']}", $total, $message);
+                        break;
+                    case 'dapatkan nama barang yang disimpan':
+                        $nameProductKeeping = $this->getNameProductKeeping([$idHistoryKeeping]);
+
+                        $name = '';
+                        if (!empty($nameProductKeeping)) {
+                            foreach ($nameProductKeeping as $product) {
+                                $name .= $product['name'] . ', ';
+                            }
+                        }
+                        $message = str_replace("{$rs['option_name']}", $name, $message);
+
+                        break;
+
+                    case 'dapatkan status barang':
+                        $allStatus = $this->getStatusProduct([$idHistoryKeeping]);
+                        $format = '';
+                        if (!empty($allStatus)) {
+
+                            foreach ($allStatus as $status) {
+                                // $message = str_replace("{$rs['option_name']}", "{$status['name']} => {$status['in']}", $message);
+                                $format .= "{$status['name']} => {$status['status_keeping']}, ";
+                            }
                         }
 
                         $message = str_replace("{$rs['option_name']}", $format, $message);
+                        break;
+
+
+                    case 'dapatkan tanggal penyimpanan':
+                        $tanggalPenyimpanan = $this->getTanggalPenyimpanan($idHistoryKeeping);
+
+                        $tanggal = null;
+                        if (!empty($tanggalPenyimpanan)) {
+                            $tanggal .= $tanggalPenyimpanan['create_at'];
+                        }
+
+
+                        $message = str_replace("{$rs['option_name']}", $tanggal, $message);
+
+                        break;
+
+                    case 'dapatkan detail barang':
+
+                        /**
+                         * UBAH INI SECARA HARDCODE
+                        //  */
+                        $details = $this->getDetailPenyimpanan([$idHistoryKeeping]);
+                        $tanggal = null;
+
+                        $format = '';
+                        if (!empty($details)) {
+
+                            foreach ($details as $detail) {
+                                $format .= <<<EOD
+                                \n================================
+                                Nama Barang = {$detail['name']}
+                                Jumlah = {$detail['count_keeping']}
+                                EOD;
+                                $tanggal = "{$detail['create_at']}";
+                            }
+
+                            $format .= <<<EOD
+                            \nTanggal : {$tanggal} 
+                            ================================
+                            EOD;
+                        }
+
+
+                        $message = str_replace("{$rs['option_name']}", $format, $message);
+
+                        break;
                 }
             }
         }
@@ -434,7 +646,7 @@ Jumlah = {$detail['count_keeping']}
     {
         $data = [];
         foreach ($idHistoryKeeping as $id) {
-            $query = "SELECT m.name, h.status_keeping, h.count_keeping, h.tanggal, h.create_at, u.phone_number, u.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON u.id_keeping = h.id_keeping INNER JOIN tb_menu AS m ON m.id_menu = u.id_product WHERE h.id_history_keeping = '{$id}'";
+            $query = "SELECT m.name, h.status_keeping, h.count_keeping, h.tanggal, h.create_at, c.phone_number, c.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON u.id_keeping = h.id_keeping INNER JOIN tb_menu AS m ON m.id_menu = u.id_product INNER JOIN tb_customer AS c ON c.id_cust = u.id_customer WHERE h.id_history_keeping = '{$id}'";
             $this->database->query($query);
             $data[] = $this->database->fetch();
         }
@@ -446,7 +658,7 @@ Jumlah = {$detail['count_keeping']}
     {
 
 
-        $query = "SELECT m.name, h.status_keeping, h.count_keeping, h.tanggal, h.create_at, u.phone_number, u.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON u.id_keeping = h.id_keeping INNER JOIN tb_menu AS m ON m.id_menu = u.id_product WHERE h.id_history_keeping = '{$idHistoryKeeping}'";
+        $query = "SELECT m.name, h.status_keeping, h.count_keeping, h.tanggal, h.create_at, c.phone_number, c.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON u.id_keeping = h.id_keeping INNER JOIN tb_menu AS m ON m.id_menu = u.id_product INNER JOIN tb_customer AS c ON c.id_cust = u.id_customer WHERE h.id_history_keeping = '{$idHistoryKeeping}'";
         $this->database->query($query);
         return $this->database->fetch();
     }
@@ -455,7 +667,7 @@ Jumlah = {$detail['count_keeping']}
     {
         $data = [];
         foreach ($idHistoryKeeping as $id) {
-            $query = "SELECT m.name, h.status_keeping, h.count_keeping, h.tanggal, u.phone_number, u.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON u.id_keeping = h.id_keeping INNER JOIN tb_menu AS m ON m.id_menu = u.id_product WHERE h.id_history_keeping = '{$id}'";
+            $query = "SELECT m.name, h.status_keeping, h.count_keeping, h.tanggal, c.phone_number, c.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON u.id_keeping = h.id_keeping INNER JOIN tb_menu AS m ON m.id_menu = u.id_product INNER JOIN tb_customer AS c ON c.id_cust = u.id_customer WHERE h.id_history_keeping = '{$id}'";
             $this->database->query($query);
             $data[] = $this->database->fetch();
         }
@@ -467,7 +679,7 @@ Jumlah = {$detail['count_keeping']}
     {
         $data = [];
         foreach ($idHistoryKeeping as $id) {
-            $query = "SELECT m.name, h.status_keeping, h.count_keeping, h.tanggal, u.phone_number, u.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON u.id_keeping = h.id_keeping INNER JOIN tb_menu AS m ON m.id_menu = u.id_product WHERE h.id_history_keeping = '{$id}'";
+            $query = "SELECT m.name, h.status_keeping, h.count_keeping, h.tanggal, c.phone_number, c.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON u.id_keeping = h.id_keeping INNER JOIN tb_menu AS m ON m.id_menu = u.id_product INNER JOIN tb_customer AS c ON c.id_cust = u.id_customer WHERE h.id_history_keeping = '{$id}'";
             $this->database->query($query);
             $data[] = $this->database->fetch();
         }
@@ -479,7 +691,13 @@ Jumlah = {$detail['count_keeping']}
     {
         $data = [];
         foreach ($idHistoryKeeping as $id) {
-            $query = "SELECT m.name, h.status_keeping, h.count_keeping, h.tanggal, u.phone_number, u.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON u.id_keeping = h.id_keeping INNER JOIN tb_menu AS m ON m.id_menu = u.id_product WHERE h.id_history_keeping = '{$id}'";
+            $query = "SELECT m.name, h.status_keeping, h.count_keeping, h.tanggal, c.phone_number, c.cust_name, u.id_keeping
+            FROM tb_history_keeping AS h
+            INNER JOIN tb_user_keeping AS u ON u.id_keeping = h.id_keeping
+            INNER JOIN tb_menu AS m ON m.id_menu = u.id_product
+            INNER JOIN tb_customer AS c ON c.id_cust = u.id_customer
+            WHERE h.id_history_keeping = '{$id}'
+            ";
             $this->database->query($query);
             $data[] = $this->database->fetch();
         }
@@ -489,7 +707,7 @@ Jumlah = {$detail['count_keeping']}
 
     function getCustPhoneNumber($idHistoryKeeping)
     {
-        $query = "SELECT u.phone_number FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON h.id_keeping = u.id_keeping WHERE h.id_history_keeping = '{$idHistoryKeeping}'";
+        $query = "SELECT c.phone_number FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON h.id_keeping = u.id_keeping INNER JOIN tb_customer AS c ON c.id_cust = u.id_customer WHERE h.id_history_keeping = '{$idHistoryKeeping}'";
         $this->database->query($query);
         $name = $this->database->fetch();
         if (!empty($name)) {
@@ -500,7 +718,7 @@ Jumlah = {$detail['count_keeping']}
 
     function getCustName($idHistoryKeeping)
     {
-        $query = "SELECT u.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON h.id_keeping = u.id_keeping WHERE h.id_history_keeping = '{$idHistoryKeeping}'";
+        $query = "SELECT c.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON h.id_keeping = u.id_keeping INNER JOIN tb_customer as C WHERE h.id_history_keeping = '{$idHistoryKeeping}'";
         $this->database->query($query);
         $name = $this->database->fetch();
         if (!empty($name)) {
@@ -586,7 +804,7 @@ Jumlah = {$detail['count_keeping']}
 
         $phoneNumber = $obj['phoneNumber'];
 
-        $query = 'SELECT cust_name FROM tb_user_keeping WHERE phone_number LIKE :phone';
+        $query = 'SELECT cust_name FROM tb_customer WHERE phone_number LIKE :phone';
         $this->database->query($query);
         $this->database->bindData(':phone', "%$phoneNumber%");
         $rs = $this->database->fetch();
@@ -622,11 +840,12 @@ Jumlah = {$detail['count_keeping']}
         // INNER JOIN tb_menu AS m ON k.id_product = m.id_menu
         // GROUP BY k.id_product, k.phone_number;';
 
-        $query = 'SELECT k.id_keeping AS id_keeping, k.phone_number as nomor_telpon, k.cust_name as cust_name, k.id_product as id_produk, m.name as nama_produk, k.product_count as product_count
+        $query = 'SELECT k.id_keeping AS id_keeping, c.phone_number as nomor_telpon, c.cust_name as cust_name, k.id_product as id_produk, m.name as nama_produk, k.product_count as product_count
         FROM tb_user_keeping AS k
         INNER JOIN tb_menu AS m ON k.id_product = m.id_menu
+        INNER JOIN tb_customer AS c ON c.id_cust = k.id_customer
         WHERE k.product_count <> 0
-        GROUP BY k.id_product, k.phone_number
+        GROUP BY k.id_product, c.phone_number
         ';
 
 
@@ -724,7 +943,7 @@ Jumlah = {$detail['count_keeping']}
 
         $id = $obj['id'];
 
-        $query = 'SELECT k.id_keeping, k.phone_number, k.product_count, k.cust_name, m.name, m.thumbnail, m.id_menu FROM tb_user_keeping AS k INNER JOIN tb_menu AS m ON k.id_product = m.id_menu WHERE id_keeping = :id;
+        $query = 'SELECT k.id_keeping, c.phone_number, k.product_count, c.cust_name, m.name, m.thumbnail, m.id_menu FROM tb_user_keeping AS k INNER JOIN tb_menu AS m ON k.id_product = m.id_menu INNER JOIN tb_customer AS c ON c.id_cust = k.id_customer WHERE id_keeping = :id;
         ';
 
         try {
@@ -774,7 +993,7 @@ Jumlah = {$detail['count_keeping']}
         $status = 'OUT';
 
 
-        $query = 'SELECT id_keeping, product_count, cust_name FROM tb_user_keeping WHERE id_keeping = :id_keeping';
+        $query = 'SELECT k.id_keeping, k.product_count, c.cust_name FROM tb_user_keeping AS k INNER JOIN tb_customer AS c ON c.id_cust = k.id_customer WHERE id_keeping = :id_keeping';
 
         $this->database->query($query);
         $this->database->bindData(':id_keeping', $id);
@@ -852,6 +1071,16 @@ Jumlah = {$detail['count_keeping']}
                     'status' => 'success',
                     'message' => 'berhasil keluarkan barang',
                 ], JSON_PRETTY_PRINT);
+
+
+                try {
+                    $message = $this->messageOutFormat($idHistoryKeeping);
+                    // send message to whatsapp
+                    $result = $this->sendSuccessMessageToCust($phoneNumber, $message);
+                    $this->waBlastLog($message, $phoneNumber, 'SEND');
+                } catch (PDOException $e) {
+                    $this->waBlastLog($message, $phoneNumber, 'FAILED');
+                }
             } catch (PDOException $e) {
                 if ($this->database->conn->inTransaction()) {
                     $this->database->conn->rollBack();
