@@ -5,6 +5,7 @@ use NextG\Autoreply\App\Router;
 use NextG\Autoreply\Controllers\CustomerController;
 use NextG\Autoreply\Controllers\KeepingController;
 use NextG\Autoreply\Controllers\MenuController;
+use NextG\Autoreply\Controllers\WablastController;
 use NextG\Autoreply\Controllers\WhatsappBlastController;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -39,5 +40,7 @@ Router::add('GET', '/customer', CustomerController::class, 'showCustomer');
 Router::add('POST', '/send-single-message', CustomerController::class, 'sendSingleMessage');
 Router::add('POST', '/send-all-message', CustomerController::class, 'sendAllMessage');
 
+// wablast
+Router::add('GET', '/wablast', WablastController::class, 'config');
 
 Router::run();
