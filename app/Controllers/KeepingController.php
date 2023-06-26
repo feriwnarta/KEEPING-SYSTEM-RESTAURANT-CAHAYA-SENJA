@@ -413,7 +413,7 @@ class KeepingController
                 switch ($rs['value_name']) {
                     case 'dapatkan nama customer':
                         $custName = "\n";
-                        $custName = $this->getCustName($idHistoryKeeping[0]);
+                        $custName .= $this->getCustName($idHistoryKeeping[0]);
 
                         $message = str_replace("{$rs['option_name']}", $custName, $message);
                         break;
