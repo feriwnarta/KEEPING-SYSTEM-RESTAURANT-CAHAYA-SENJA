@@ -190,6 +190,7 @@ input.quantity {
     line-height: 1.5;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     height: auto;
+    font-size: 15px;
 }
 
 .editableDiv:focus,
@@ -197,6 +198,32 @@ input.quantity {
     outline: 0;
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     border-color: #80bdff;
+}
+
+label {
+    font-size: 18px;
+
+}
+
+.btn-outline-secondary {
+    border-color: #CBD5E1;
+    color: black;
+}
+
+#myPopover {
+    display: none;
+    position: absolute;
+    /* Tambahkan gaya CSS lainnya sesuai kebutuhan Anda */
+}
+
+#floatingElement {
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    display: none;
+    width: 100px;
+    height: 100px;
 }
 
 
