@@ -11,7 +11,7 @@
 
         <?php } else { ?>
             <div class="text-end me-3  mb-3">
-                <button type="button" class="btn btn-primary position-relative" id="sendAllMessage" data-bs-toggle="modal" data-bs-target="#modalAll">Kirim pesan kesemua</button>
+                <button type="button" class="btn btn-primary position-relative" id="sendAllMessage" data-bs-toggle="modal" data-bs-target="#modalAll">Kirim pesan kesemua customer</button>
             </div>
 
 

@@ -200,8 +200,9 @@ input.quantity {
     border-color: #80bdff;
 }
 
-label {
+.form-label {
     font-size: 18px;
+    font-weight: bold;
 
 }
 
