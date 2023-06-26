@@ -412,7 +412,9 @@ class KeepingController
 
                 switch ($rs['value_name']) {
                     case 'dapatkan nama customer':
+                        $custName = "\n";
                         $custName = $this->getCustName($idHistoryKeeping[0]);
+
                         $message = str_replace("{$rs['option_name']}", $custName, $message);
                         break;
                     case 'dapatkan nomor telpon customer':
@@ -451,7 +453,7 @@ class KeepingController
 
                             foreach ($allStatus as $status) {
                                 // $message = str_replace("{$rs['option_name']}", "{$status['name']} => {$status['in']}", $message);
-                                $format .= "{$status['name']} => {$status['status_keeping']}, ";
+                                $format .= "{$status['name']} => {$status['status_keeping']} \n";
                             }
                         }
 
@@ -482,13 +484,17 @@ class KeepingController
 
                         $format = '';
                         if (!empty($details)) {
+                            $format .= "\n================================\n";
 
-                            foreach ($details as $detail) {
-                                $format .= <<<EOD
-                            \n================================
-                            Nama Barang = {$detail['name']}
-                            Jumlah = {$detail['count_keeping']}
-                            EOD;
+                            $lastKey = array_key_last($details);
+                            foreach ($details as $key => $detail) {
+                                $format .= "Nama Barang = {$detail['name']}\n";
+                                $format .= "Jumlah = {$detail['count_keeping']}";
+
+                                if ($key !== $lastKey) {
+                                    $format .= "\n\n";
+                                }
+
                                 $tanggal = "{$detail['create_at']}";
                             }
 
