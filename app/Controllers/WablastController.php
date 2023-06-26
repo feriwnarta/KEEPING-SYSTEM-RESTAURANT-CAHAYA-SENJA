@@ -4,6 +4,7 @@ namespace NextG\Autoreply\Controllers;
 
 use NextG\Autoreply\App\Database;
 use NextG\Autoreply\App\View;
+use NextG\Autoreply\Services\WhatsappBlastService;
 use PDOException;
 
 class WablastController
@@ -94,5 +95,32 @@ class WablastController
                 echo json_encode('failed');
             }
         }
+    }
+
+    public function settingWablast()
+    {
+        $wablastService = new WhatsappBlastService;
+        $barcode = $wablastService->deviceScan();
+        $realtimeData = $wablastService->reportRealtime();
+        $active = $wablastService->checkDeviceActive();
+        $realtimeData = $realtimeData['data'];
+
+
+        $data = [
+            'realtimeData' => $realtimeData,
+            'barcode' => $barcode,
+            'status' => $active,
+        ];
+        View::render('main', 'wablast/setting-wablast', $data);
+    }
+
+    public function barcode()
+    {
+        $wablastService = new WhatsappBlastService;
+        $barcode = $wablastService->deviceScan();
+
+    
+
+        View::render('main', 'wablast/barcode-wablast', $barcode);
     }
 }

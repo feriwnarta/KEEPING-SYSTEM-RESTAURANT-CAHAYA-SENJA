@@ -34,6 +34,9 @@
              <li class="nav-item">
                  <a class="nav-link" href="<?= Configuration::$ROOT; ?>wablast">Wablast</a>
              </li>
+             <li class="nav-item">
+                 <a class="nav-link" href="<?= Configuration::$ROOT; ?>setting-wablast">Setting Wablast</a>
+             </li>
          </ul>
      </div>
  </nav>

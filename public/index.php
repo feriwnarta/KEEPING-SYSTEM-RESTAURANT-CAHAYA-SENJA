@@ -43,5 +43,7 @@ Router::add('POST', '/send-all-message', CustomerController::class, 'sendAllMess
 // wablast
 Router::add('GET', '/wablast', WablastController::class, 'config');
 Router::add('POST', '/save-setting-wablast', WablastController::class, 'saveSettingWablast');
+Router::add('GET', '/setting-wablast', WablastController::class, 'settingWablast');
+Router::add('GET', '/barcode', WablastController::class, 'barcode');
 
 Router::run();
