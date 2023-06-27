@@ -119,8 +119,6 @@ class WablastController
         $wablastService = new WhatsappBlastService;
         $barcode = $wablastService->deviceScan();
 
-    
-
-        View::render('main', 'wablast/barcode-wablast', $barcode);
+        View::render('wablast/barcode-wablast', '', $barcode);
     }
 }

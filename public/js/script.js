@@ -18,7 +18,7 @@ $(function () {
       // Menambahkan kelas "active" pada elemen <li> yang merupakan elemen induk dari elemen <a>
       var liElement = link.parentNode;
       liElement.classList.add("active");
-    }
+    } 
   });
 
   if ($("#tableKeeping").length) {
@@ -32,4 +32,3 @@ $(function () {
     });
   }
 });
-
