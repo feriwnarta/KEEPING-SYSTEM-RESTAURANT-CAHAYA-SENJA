@@ -77,13 +77,15 @@ class WhatsappBlastService
 
     public function deviceScan()
     {
-        curl_setopt($this->curl, CURLOPT_URL,  "https://pati.wablas.com/api/device/scan?token=$this->token");
-        curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, "GET");
-        curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, 0);
-        $result = curl_exec($this->curl);
-        return $result;
+        $url = "https://pati.wablas.com/api/device/scan?token=$this->token";
+        return $url;
+        // curl_setopt($this->curl, CURLOPT_URL,  "https://pati.wablas.com/api/device/scan?token=$this->token");
+        // curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, "GET");
+        // curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
+        // curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, 0);
+        // curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, 0);
+        // $result = curl_exec($this->curl);
+        // return $result;
     }
 
     public function sendMultipleText($payload)
