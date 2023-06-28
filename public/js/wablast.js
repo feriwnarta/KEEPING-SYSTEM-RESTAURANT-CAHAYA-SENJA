@@ -112,7 +112,6 @@ function popOverVariable(element, editable, preview) {
 
       let editableDivText = editableDiv.text();
 
-      console.log(editableDivText);
 
       editableDivText += id;
 
