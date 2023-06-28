@@ -223,9 +223,6 @@ class KeepingController
 
                 // spreadsheet baru dengan berhasil dibuat
                 if ($result != false) {
-
-
-
                     $idSpreadSheet = $result;
 
                     // bikin header table history
@@ -350,8 +347,6 @@ class KeepingController
             if ($this->database->conn->inTransaction()) {
                 $this->database->conn->rollBack();
             }
-
-            var_dump($e);
 
             http_response_code(400);
             echo json_encode([
