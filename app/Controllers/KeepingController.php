@@ -343,7 +343,7 @@ class KeepingController
                     $this->waBlastLog($message, $custPhoneNumber, 'NOT ACTIVE');
                 }
             } catch (PDOException $e) {
-                $this->waBlastLog($message, $custPhoneNumber, 'FAILED');
+                $this->waBlastLog('ERROR', $custPhoneNumber, 'FAILED');
             }
         } catch (PDOException $e) {
 
@@ -728,7 +728,7 @@ class KeepingController
 
     function getCustName($idHistoryKeeping)
     {
-        $query = "SELECT c.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON h.id_keeping = u.id_keeping INNER JOIN tb_customer as C WHERE h.id_history_keeping = '{$idHistoryKeeping}'";
+        $query = "SELECT c.cust_name FROM tb_history_keeping AS h INNER JOIN tb_user_keeping AS u ON h.id_keeping = u.id_keeping INNER JOIN tb_customer as c ON c.id_cust = u.id_customer WHERE h.id_history_keeping = '{$idHistoryKeeping}'";
         $this->database->query($query);
         $name = $this->database->fetch();
         if (!empty($name)) {
