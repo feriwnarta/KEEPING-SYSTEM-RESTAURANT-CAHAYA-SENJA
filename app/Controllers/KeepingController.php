@@ -95,7 +95,14 @@ class KeepingController
                 /**
                  * query check sudah ada data terlebih dahulu
                  */
-                $query = 'SELECT k.id_keeping, k.id_product, k.product_count FROM tb_user_keeping AS k INNER JOIN tb_customer AS c WHERE c.phone_number = :phone_number AND k.id_product = :id_product';
+                // $query = 'SELECT k.id_keeping, k.id_product, k.product_count FROM tb_user_keeping AS k INNER JOIN tb_customer AS c WHERE c.phone_number = :phone_number AND k.id_product = :id_product';
+
+                $query = 'SELECT k.id_keeping, k.id_product, k.product_count
+                FROM tb_user_keeping AS k
+                INNER JOIN tb_customer AS c ON k.id_customer = c.id_cust
+                WHERE c.phone_number = :phone_number AND k.id_product = :id_product;
+                ';
+
 
                 $this->database->query($query);
                 $this->database->bindData(':phone_number', $custPhoneNumber);
