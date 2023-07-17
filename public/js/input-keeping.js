@@ -177,6 +177,7 @@ function sendButtonKeepingClicked() {
     e.preventDefault(); // Mencegah tindakan bawaan formulir
     let custName = $(".input-name-cust").val();
     let custPhoneNumber = $(".input-cust-number-phone").val();
+    
 
     data = [];
 
