@@ -179,6 +179,7 @@ function sendButtonKeepingClicked() {
     let custPhoneNumber = $(".input-cust-number-phone").val();
     
 
+
     data = [];
 
     // get data keeping terupdate
@@ -197,6 +198,7 @@ function sendButtonKeepingClicked() {
     });
 
     let jsonData = JSON.stringify(data);
+
 
     $(document).ajaxStart(function () {
       Swal.fire({
@@ -229,6 +231,8 @@ function sendButtonKeepingClicked() {
         },
       });
     });
+
+    
 
     $.ajax({
       type: "POST",
