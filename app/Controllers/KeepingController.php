@@ -1028,6 +1028,8 @@ class KeepingController
                 $this->database->bindData(':update_at', $dateTimeNow);
                 $this->database->execute();
 
+                $this->validateMinusStock($id);
+
                 // dapatkan nama barang / produk
                 $query = 'SELECT name FROM tb_menu WHERE id_menu = :id';
                 $this->database->query($query);
@@ -1061,7 +1063,6 @@ class KeepingController
                 $this->database->bindData(':status_keeping', $status);
                 $this->database->bindData(':count_keeping', $val);
                 $this->database->bindData(':tanggal', $dateTimeNow);
-
                 $this->database->execute();
 
                 $this->database->conn->commit();
@@ -1115,5 +1116,31 @@ class KeepingController
 
 
         // echo json_encode($format);
+    }
+
+    private function validateMinusStock($id)
+    {
+
+
+        $query = 'SELECT product_count FROM tb_user_keeping WHERE id_keeping = :id';
+        $this->database->query($query);
+        $this->database->bindData(':id', $id);
+        $productCount = $this->database->fetch()['product_count'];
+
+        // minus
+        if ($productCount < 0) {
+
+            if($this->database->conn->inTransaction()) {
+                $this->database->conn->rollBack();
+            }
+
+            http_response_code(400);
+            echo json_encode([
+                'status_code' => 400,
+                'status' => 'failed',
+                'message' => 'minus stock out keeping',
+            ], JSON_PRETTY_PRINT);
+            die();
+        }
     }
 }

@@ -88,6 +88,10 @@ class AssistantPrefulfillmentRankerPrefulfillmentSignals extends \Google\Model
   /**
    * @var bool
    */
+  public $isHighConfidencePodcastIntent;
+  /**
+   * @var bool
+   */
   public $isMediaControlIntent;
   /**
    * @var bool
@@ -96,11 +100,23 @@ class AssistantPrefulfillmentRankerPrefulfillmentSignals extends \Google\Model
   /**
    * @var bool
    */
+  public $isPodcastGenericIntent;
+  /**
+   * @var bool
+   */
   public $isPodcastIntent;
   /**
    * @var bool
    */
+  public $isSageIntent;
+  /**
+   * @var bool
+   */
   public $isTvmIntent;
+  /**
+   * @var bool
+   */
+  public $isValidSmarthomeIntent;
   /**
    * @var bool
    */
@@ -152,6 +168,8 @@ class AssistantPrefulfillmentRankerPrefulfillmentSignals extends \Google\Model
    * @var string
    */
   public $searchDispatch;
+  protected $smarthomeIntentMetadataType = AssistantPfrSmartHomeIntentMetadata::class;
+  protected $smarthomeIntentMetadataDataType = '';
   /**
    * @var string
    */
@@ -424,6 +442,20 @@ class AssistantPrefulfillmentRankerPrefulfillmentSignals extends \Google\Model
   /**
    * @param bool
    */
+  public function setIsHighConfidencePodcastIntent($isHighConfidencePodcastIntent)
+  {
+    $this->isHighConfidencePodcastIntent = $isHighConfidencePodcastIntent;
+  }
+  /**
+   * @return bool
+   */
+  public function getIsHighConfidencePodcastIntent()
+  {
+    return $this->isHighConfidencePodcastIntent;
+  }
+  /**
+   * @param bool
+   */
   public function setIsMediaControlIntent($isMediaControlIntent)
   {
     $this->isMediaControlIntent = $isMediaControlIntent;
@@ -452,6 +484,20 @@ class AssistantPrefulfillmentRankerPrefulfillmentSignals extends \Google\Model
   /**
    * @param bool
    */
+  public function setIsPodcastGenericIntent($isPodcastGenericIntent)
+  {
+    $this->isPodcastGenericIntent = $isPodcastGenericIntent;
+  }
+  /**
+   * @return bool
+   */
+  public function getIsPodcastGenericIntent()
+  {
+    return $this->isPodcastGenericIntent;
+  }
+  /**
+   * @param bool
+   */
   public function setIsPodcastIntent($isPodcastIntent)
   {
     $this->isPodcastIntent = $isPodcastIntent;
@@ -466,6 +512,20 @@ class AssistantPrefulfillmentRankerPrefulfillmentSignals extends \Google\Model
   /**
    * @param bool
    */
+  public function setIsSageIntent($isSageIntent)
+  {
+    $this->isSageIntent = $isSageIntent;
+  }
+  /**
+   * @return bool
+   */
+  public function getIsSageIntent()
+  {
+    return $this->isSageIntent;
+  }
+  /**
+   * @param bool
+   */
   public function setIsTvmIntent($isTvmIntent)
   {
     $this->isTvmIntent = $isTvmIntent;
@@ -476,6 +536,20 @@ class AssistantPrefulfillmentRankerPrefulfillmentSignals extends \Google\Model
   public function getIsTvmIntent()
   {
     return $this->isTvmIntent;
+  }
+  /**
+   * @param bool
+   */
+  public function setIsValidSmarthomeIntent($isValidSmarthomeIntent)
+  {
+    $this->isValidSmarthomeIntent = $isValidSmarthomeIntent;
+  }
+  /**
+   * @return bool
+   */
+  public function getIsValidSmarthomeIntent()
+  {
+    return $this->isValidSmarthomeIntent;
   }
   /**
    * @param bool
@@ -702,6 +776,20 @@ class AssistantPrefulfillmentRankerPrefulfillmentSignals extends \Google\Model
   public function getSearchDispatch()
   {
     return $this->searchDispatch;
+  }
+  /**
+   * @param AssistantPfrSmartHomeIntentMetadata
+   */
+  public function setSmarthomeIntentMetadata(AssistantPfrSmartHomeIntentMetadata $smarthomeIntentMetadata)
+  {
+    $this->smarthomeIntentMetadata = $smarthomeIntentMetadata;
+  }
+  /**
+   * @return AssistantPfrSmartHomeIntentMetadata
+   */
+  public function getSmarthomeIntentMetadata()
+  {
+    return $this->smarthomeIntentMetadata;
   }
   /**
    * @param string

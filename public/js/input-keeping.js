@@ -10,6 +10,7 @@ let data = [];
 let keepingTemp = [];
 let dataPaging = [];
 let start = 0;
+let isFormProcessing = false;
 
 function whenPhoneNumberInputActive() {
   $(".input-cust-number-phone").on("input", function () {
@@ -67,6 +68,7 @@ function infiniteLoadingPagination() {
 function reqAllMinuman() {
   // awal ajax req dimulai
   $(document).ajaxStart(function () {
+    sweetAlertDestroy();
     showLoading();
   });
 
@@ -167,19 +169,34 @@ function btnPilihMinumanCliced() {
   });
 }
 
+function sweetAlertDestroy() {
+  // Menutup SweetAlert menggunakan fungsi close()
+  Swal.close();
+}
+
+
+
 function sendButtonKeepingClicked() {
   if ($(".list-keeping-picked").html().trim() === "") {
-    alert("minuman belum dipilih");
+    Swal.fire({
+      icon: "warning",
+      title: "Minuman belum dipilih",
+      showConfirmButton: true,
+    });
+
     return;
   }
 
   $(".form-keeping").submit(function (e) {
     e.preventDefault(); // Mencegah tindakan bawaan formulir
+
+    if (isFormProcessing) {
+      return; // Cegah pengiriman formulir jika sudah sedang diproses
+    }
+
     let custName = $(".input-name-cust").val();
     let custPhoneNumber = $(".input-cust-number-phone").val();
     
-
-
     data = [];
 
     // get data keeping terupdate
@@ -198,6 +215,8 @@ function sendButtonKeepingClicked() {
     });
 
     let jsonData = JSON.stringify(data);
+
+    isFormProcessing = true;
 
 
     $(document).ajaxStart(function () {
@@ -233,6 +252,7 @@ function sendButtonKeepingClicked() {
     });
 
     
+    
 
     $.ajax({
       type: "POST",
@@ -241,6 +261,8 @@ function sendButtonKeepingClicked() {
       dataType: "JSON",
       success: function (response) {
         if (response.status == "success" && response.status_code == 200) {
+          isFormProcessing = false;
+
           Swal.fire({
             icon: "success",
             title: "Data berhasil disimpan",
@@ -259,6 +281,8 @@ function sendButtonKeepingClicked() {
       error: function (xhr, status, error) {
         // Handle error response
         if (xhr.status === 400) {
+
+          isFormProcessing = false;
           if (JSON.parse(xhr.responseText).message == "data gagal disimpan") {
             Swal.fire({
               icon: "error",
@@ -276,7 +300,7 @@ function sendButtonKeepingClicked() {
               icon: "error",
               title:
                 "Nama tidak boleh beda dengan nama yang sudah diinput menggunakan nomor ini",
-              showConfirmButton: true,
+              showConfirmButton: true
               // didClose: () => {
               //   location.reload();
               // },

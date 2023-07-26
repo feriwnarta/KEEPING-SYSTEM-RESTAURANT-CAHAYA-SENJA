@@ -31,10 +31,6 @@ Router::add('POST', '/update-menu', MenuController::class, 'updateMenu');
 Router::add('POST', '/delete-menu', MenuController::class, 'deleteMenu');
 Router::add('GET', '/show-menu', MenuController::class, 'menu');
 
-// whatsapp blast controller
-Router::add('GET', '/check', WhatsappBlastController::class, 'test');
-Router::add('GET', '/new', KeepingController::class, 'messageFormat');
-
 // customer conrtoller
 Router::add('GET', '/customer', CustomerController::class, 'showCustomer');
 Router::add('POST', '/send-single-message', CustomerController::class, 'sendSingleMessage');
@@ -45,5 +41,9 @@ Router::add('GET', '/wablast', WablastController::class, 'config');
 Router::add('POST', '/save-setting-wablast', WablastController::class, 'saveSettingWablast');
 Router::add('GET', '/setting-wablast', WablastController::class, 'settingWablast');
 Router::add('GET', '/barcode', WablastController::class, 'barcode');
+
+// whatsapp blast controller // test
+Router::add('GET', '/woy', WhatsappBlastController::class, 'testKeep');
+Router::add('GET', '/new', KeepingController::class, 'messageFormat');
 
 Router::run();

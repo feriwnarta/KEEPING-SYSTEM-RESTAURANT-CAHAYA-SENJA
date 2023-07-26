@@ -10,7 +10,7 @@ use NextG\Autoreply\App\Configuration;
         <div class="col-sm-7">
             <form class="form-keeping">
                 <div class="form-floating mb-4">
-                    <input type="date" class="form-control" id="floatingDate" placeholder=" " required>
+                    <input type="date" class="form-control" id="floatingDate" placeholder=" " required disabled>
                     <label for="floatingDate">Tanggal</label>
                 </div>
 

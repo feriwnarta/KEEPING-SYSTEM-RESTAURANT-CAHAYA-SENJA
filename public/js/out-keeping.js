@@ -177,6 +177,25 @@ function processOut() {
               location.reload();
             },
           });
+        } else if (JSON.parse(xhr.responseText).message == "minus stock out keeping") {
+          Swal.fire({
+            icon: "error",
+            title: "Error minus stock",
+            text: 'Ada yang salah saat mengeluarkan barang sehingga menyebabkan stock minus. pastikan tidak terjadi double click dan pastikan koneksi internet yang lancar',
+            showConfirmButton: true,
+            didClose: () => {
+              location.reload();
+            },
+          });
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Ada sesuatu yang salah",
+            showConfirmButton: true,
+            didClose: () => {
+              location.reload();
+            },
+          });
         }
       }
     },

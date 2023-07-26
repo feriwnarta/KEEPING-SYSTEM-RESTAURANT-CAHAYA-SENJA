@@ -40,7 +40,6 @@ class Baremetalsolution extends \Google\Service
       "https://www.googleapis.com/auth/cloud-platform";
 
   public $projects_locations;
-  public $projects_locations_instanceProvisioningSettings;
   public $projects_locations_instances;
   public $projects_locations_networks;
   public $projects_locations_nfsShares;
@@ -110,43 +109,13 @@ class Baremetalsolution extends \Google\Service
           ]
         ]
     );
-    $this->projects_locations_instanceProvisioningSettings = new Baremetalsolution\Resource\ProjectsLocationsInstanceProvisioningSettings(
-        $this,
-        $this->serviceName,
-        'instanceProvisioningSettings',
-        [
-          'methods' => [
-            'fetch' => [
-              'path' => 'v2/{+location}/instanceProvisioningSettings:fetch',
-              'httpMethod' => 'GET',
-              'parameters' => [
-                'location' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-              ],
-            ],
-          ]
-        ]
-    );
     $this->projects_locations_instances = new Baremetalsolution\Resource\ProjectsLocationsInstances(
         $this,
         $this->serviceName,
         'instances',
         [
           'methods' => [
-            'create' => [
-              'path' => 'v2/{+parent}/instances',
-              'httpMethod' => 'POST',
-              'parameters' => [
-                'parent' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-              ],
-            ],'detachLun' => [
+            'detachLun' => [
               'path' => 'v2/{+instance}:detachLun',
               'httpMethod' => 'POST',
               'parameters' => [

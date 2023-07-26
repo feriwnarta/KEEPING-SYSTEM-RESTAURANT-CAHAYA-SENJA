@@ -17,8 +17,9 @@
 
 namespace Google\Service\Assuredworkloads;
 
-class GoogleCloudAssuredworkloadsV1Violation extends \Google\Model
+class GoogleCloudAssuredworkloadsV1Violation extends \Google\Collection
 {
+  protected $collection_key = 'exceptionContexts';
   /**
    * @var bool
    */
@@ -47,6 +48,8 @@ class GoogleCloudAssuredworkloadsV1Violation extends \Google\Model
    * @var string
    */
   public $exceptionAuditLogLink;
+  protected $exceptionContextsType = GoogleCloudAssuredworkloadsV1ViolationExceptionContext::class;
+  protected $exceptionContextsDataType = 'array';
   /**
    * @var string
    */
@@ -55,10 +58,6 @@ class GoogleCloudAssuredworkloadsV1Violation extends \Google\Model
    * @var string
    */
   public $nonCompliantOrgPolicy;
-  /**
-   * @var string
-   */
-  public $orgPolicyConstraint;
   protected $remediationType = GoogleCloudAssuredworkloadsV1ViolationRemediation::class;
   protected $remediationDataType = '';
   /**
@@ -173,6 +172,20 @@ class GoogleCloudAssuredworkloadsV1Violation extends \Google\Model
     return $this->exceptionAuditLogLink;
   }
   /**
+   * @param GoogleCloudAssuredworkloadsV1ViolationExceptionContext[]
+   */
+  public function setExceptionContexts($exceptionContexts)
+  {
+    $this->exceptionContexts = $exceptionContexts;
+  }
+  /**
+   * @return GoogleCloudAssuredworkloadsV1ViolationExceptionContext[]
+   */
+  public function getExceptionContexts()
+  {
+    return $this->exceptionContexts;
+  }
+  /**
    * @param string
    */
   public function setName($name)
@@ -199,20 +212,6 @@ class GoogleCloudAssuredworkloadsV1Violation extends \Google\Model
   public function getNonCompliantOrgPolicy()
   {
     return $this->nonCompliantOrgPolicy;
-  }
-  /**
-   * @param string
-   */
-  public function setOrgPolicyConstraint($orgPolicyConstraint)
-  {
-    $this->orgPolicyConstraint = $orgPolicyConstraint;
-  }
-  /**
-   * @return string
-   */
-  public function getOrgPolicyConstraint()
-  {
-    return $this->orgPolicyConstraint;
   }
   /**
    * @param GoogleCloudAssuredworkloadsV1ViolationRemediation
