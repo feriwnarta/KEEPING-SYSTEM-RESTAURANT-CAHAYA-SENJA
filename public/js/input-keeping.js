@@ -68,7 +68,7 @@ function infiniteLoadingPagination() {
 function reqAllMinuman() {
   // awal ajax req dimulai
   $(document).ajaxStart(function () {
-    sweetAlertDestroy();
+    // sweetAlertDestroy();
     showLoading();
   });
 
@@ -177,18 +177,18 @@ function sweetAlertDestroy() {
 
 
 function sendButtonKeepingClicked() {
-  if ($(".list-keeping-picked").html().trim() === "") {
-    Swal.fire({
-      icon: "warning",
-      title: "Minuman belum dipilih",
-      showConfirmButton: true,
-    });
-
-    return;
-  }
 
   $(".form-keeping").submit(function (e) {
     e.preventDefault(); // Mencegah tindakan bawaan formulir
+
+    if ($(".list-keeping-picked").html().trim() === "") {
+      Swal.fire({
+        icon: "warning",
+        title: "Minuman belum dipilih",
+        showConfirmButton: true,
+      });
+      return false;
+    }
 
     if (isFormProcessing) {
       return; // Cegah pengiriman formulir jika sudah sedang diproses
@@ -251,8 +251,6 @@ function sendButtonKeepingClicked() {
       });
     });
 
-    
-    
 
     $.ajax({
       type: "POST",
