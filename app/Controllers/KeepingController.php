@@ -800,7 +800,7 @@ class KeepingController
          */
         if ($count <= 1) {
             $name = "LAPORANSTOCK{$tanggal}";
-            $rs = $this->spreadSheetService->createNewSpreadSheet($name, 'feriwnarta26@gmail.com');
+            $rs = $this->spreadSheetService->createNewSpreadSheet($name, 'senjakasir@gmail.com');
             return $rs;
         }
 

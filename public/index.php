@@ -43,7 +43,7 @@ Router::add('GET', '/setting-wablast', WablastController::class, 'settingWablast
 Router::add('GET', '/barcode', WablastController::class, 'barcode');
 
 // whatsapp blast controller // test
-Router::add('GET', '/woy', WhatsappBlastController::class, 'testKeep');
+Router::add('GET', '/woy', WhatsappBlastController::class, 'test');
 Router::add('GET', '/new', KeepingController::class, 'messageFormat');
 
 Router::run();
