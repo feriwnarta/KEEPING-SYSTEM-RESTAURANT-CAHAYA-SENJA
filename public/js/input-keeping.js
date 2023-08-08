@@ -11,6 +11,151 @@ let keepingTemp = [];
 let dataPaging = [];
 let start = 0;
 let isFormProcessing = false;
+let isSearch = false;
+
+function searchMenu() {
+  $('#searchInput').on("input", function() {
+      let val = $(this).val();
+
+      if(val == '') {
+        defaultSearch();
+        return;
+      }
+
+
+      let jsonData = JSON.stringify({search : val});
+
+      requestSearchMenu(jsonData);
+
+  });
+}
+
+function requestSearchMenu(jsonData) {
+  $.ajax({
+    type: "POST",
+    url: "search-menu",
+    data: jsonData,
+    dataType: "JSON",
+    async: false,
+    success: function (response) {
+        let allMenu = response.data;
+        isSearch = true;
+        hideLoading();
+
+        if(allMenu.length == 0) {
+          return;
+        }
+
+        displaySearchMenu(allMenu)
+    },
+  });
+}
+
+function displaySearchMenu(allMenu) {
+  let html = '';
+
+  allMenu.forEach(function (element) {
+    html += `
+            <div class="row">
+            <div class="col-12 item" id="${element.id_menu}">
+                <div class="d-flex flex-row align-items-center justify-content-between">
+                    <div class="prdct d-none d-sm-block">
+                        <img src="public/menu/${element.thumbnail}" alt="" srcset="" width="80" class="me-2">
+                        ${element.name}
+                    </div>
+
+                    <div class="prdct d-flex flex-column align-items-center d-sm-none">
+                        <img src="public/menu/${element.thumbnail}" alt="" srcset="" width="80" class="me-2">
+                        <div>${element.name}</div>
+                    </div>
+                    
+  
+                    <div class="item d-flex flex-row align-items-center">
+                        <div class="number-input d-flex flex-row">
+                            <button class="btn minus" onclick="stepDown(event, this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" class="bi bi-dash" viewBox="0 0 16 16">
+                                    <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z" stroke="white" stroke-width="1" />
+                                </svg>
+  
+                            </button>
+  
+                            <input class="quantity form-control" min="0" name="quantity" value="0" type="number">
+  
+                            <button class="btn  plus" onclick="stepUp(event, this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" class="bi bi-plus" viewBox="0 0 16 16">
+                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" stroke="white" stroke-width="1" />
+                                </svg>
+                            </button>
+  
+  
+                        </div>
+                    </div>
+  
+                </div>
+                <hr>
+            </div>
+  
+        </div>
+            `;
+  });
+
+  $(".list-product").html(html);
+
+
+
+}
+
+function defaultSearch() {
+  let html = "";
+  dataPaging.forEach(function (element) {
+    html += `
+            <div class="row">
+            <div class="col-12 item" id="${element.id_menu}">
+                <div class="d-flex flex-row align-items-center justify-content-between">
+                    <div class="prdct d-none d-sm-block">
+                        <img src="public/menu/${element.thumbnail}" alt="" srcset="" width="80" class="me-2">
+                        ${element.name}
+                    </div>
+
+                    <div class="prdct d-flex flex-column align-items-center d-sm-none">
+                        <img src="public/menu/${element.thumbnail}" alt="" srcset="" width="80" class="me-2">
+                        <div>${element.name}</div>
+                    </div>
+                    
+  
+                    <div class="item d-flex flex-row align-items-center">
+                        <div class="number-input d-flex flex-row">
+                            <button class="btn minus" onclick="stepDown(event, this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" class="bi bi-dash" viewBox="0 0 16 16">
+                                    <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z" stroke="white" stroke-width="1" />
+                                </svg>
+  
+                            </button>
+  
+                            <input class="quantity form-control" min="0" name="quantity" value="0" type="number">
+  
+                            <button class="btn  plus" onclick="stepUp(event, this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" class="bi bi-plus" viewBox="0 0 16 16">
+                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" stroke="white" stroke-width="1" />
+                                </svg>
+                            </button>
+  
+  
+                        </div>
+                    </div>
+  
+                </div>
+                <hr>
+            </div>
+  
+        </div>
+            `;
+  });
+
+  $(".list-product").html(html);
+
+  directInputQuantity();
+}
 
 function whenPhoneNumberInputActive() {
   $(".input-cust-number-phone").on("input", function () {
@@ -49,19 +194,23 @@ function btnDeleteClicked(obj) {
 }
 
 function infiniteLoadingPagination() {
-  $("#getMenu").on("shown.bs.modal", function () {
-    $(this)
-      .find(".modal-body")
-      .scroll(function () {
-        var scrollTop = $(this).scrollTop();
-        var scrollHeight = $(this).prop("scrollHeight");
-        var clientHeight = $(this).prop("clientHeight");
 
-        if (scrollTop + clientHeight + 1 >= scrollHeight) {
-          start = dataPaging.length;
-          reqAllMinuman();
-        }
-      });
+  $("#getMenu").on("shown.bs.modal", function () {
+      $(this)
+          .find(".modal-body")
+          .scroll(function () {
+
+            if(isSearch == false) {
+              var scrollTop = $(this).scrollTop();
+              var scrollHeight = $(this).prop("scrollHeight");
+              var clientHeight = $(this).prop("clientHeight");
+
+              if (scrollTop + clientHeight + 1 >= scrollHeight) {
+                start = dataPaging.length;
+                reqAllMinuman();
+              }
+            }
+          });
   });
 }
 
@@ -79,6 +228,7 @@ function reqAllMinuman() {
       start: start,
     },
     cache: false,
+    async: false,
     success: function (response) {
       const data = JSON.parse(response);
 
@@ -165,6 +315,7 @@ function hideLoading() {
 
 function btnPilihMinumanCliced() {
   $(".btn-pilih-minuman").click(function () {
+    searchMenu();
     reqAllMinuman();
   });
 }

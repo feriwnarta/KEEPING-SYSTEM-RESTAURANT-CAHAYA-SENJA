@@ -23,6 +23,34 @@ class KeepingController
         $this->whatsappService = new WhatsappBlastService();
     }
 
+    public function searchMenu() {
+        $json = file_get_contents('php://input');
+        $obj = json_decode($json, true);
+
+        if(!isset($obj) || empty($obj)) {
+            return;
+        }
+
+        $search = $obj['search'];
+
+        try {
+            $query = 'SELECT * FROM tb_menu WHERE MATCH(name) AGAINST (:search)';
+            $this->database->query($query);
+            $this->database->bindData(':search', $search);
+            $result = $this->database->fetchAll();
+
+
+            http_response_code(200);
+            echo json_encode(array('status' => 'success', 'data' => $result), JSON_PRETTY_PRINT);
+
+        }catch (PDOException $e) {
+            http_response_code(400);
+            echo json_encode(array('status' => 'failed', 'message' => $e->getMessage()));
+
+        }
+
+    }
+
 
     public function index()
     {

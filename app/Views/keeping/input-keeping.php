@@ -34,7 +34,13 @@ use NextG\Autoreply\App\Configuration;
                     <div class="modal-dialog modal-lg modal-dialog-scrollable">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h1 class="modal-title fs-5" id="exampleModalLabel">Minuman</h1>
+<!--                                <h1 class="modal-title fs-5" id="exampleModalLabel">Minuman</h1>-->
+                                <div class="search-menu" style="width: 90%">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="searchInput" placeholder="Cari Barang..">
+                                        <label for="floatingInput">Cari Barang</label>
+                                    </div>
+                                </div>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
