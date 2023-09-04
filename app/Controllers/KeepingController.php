@@ -2,6 +2,7 @@
 
 namespace NextG\Autoreply\Controllers;
 
+use NextG\Autoreply\App\Configuration;
 use NextG\Autoreply\App\Database;
 use NextG\Autoreply\App\View;
 use NextG\Autoreply\Services\SpreadsheetService;
@@ -23,32 +24,30 @@ class KeepingController
         $this->whatsappService = new WhatsappBlastService();
     }
 
-    public function searchMenu() {
+    public function searchMenu()
+    {
         $json = file_get_contents('php://input');
         $obj = json_decode($json, true);
 
-        if(!isset($obj) || empty($obj)) {
+        if (!isset($obj) || empty($obj)) {
             return;
         }
 
         $search = $obj['search'];
 
         try {
-            $query = 'SELECT * FROM tb_menu WHERE MATCH(name) AGAINST (:search)';
+            $query = 'SELECT * FROM tb_menu WHERE name LIKE :search';
             $this->database->query($query);
-            $this->database->bindData(':search', $search);
+            $this->database->bindData(':search', "%{$search}%");
             $result = $this->database->fetchAll();
 
 
             http_response_code(200);
             echo json_encode(array('status' => 'success', 'data' => $result), JSON_PRETTY_PRINT);
-
-        }catch (PDOException $e) {
+        } catch (PDOException $e) {
             http_response_code(400);
             echo json_encode(array('status' => 'failed', 'message' => $e->getMessage()));
-
         }
-
     }
 
 
@@ -251,105 +250,147 @@ class KeepingController
                 $this->database->bindData(':id', $idProduct);
                 $nameProduct = $this->database->fetch();
 
-
-                // buat spread sheet 
-                $result = $this->makeSpreadSheet();
+                // tanggal upload dari sistem
                 $dateUpload = date('Y-m');
 
-                // spreadsheet baru dengan berhasil dibuat
-                if ($result != false) {
-                    $idSpreadSheet = $result;
+                // dapatkan id spreadsheet yang sudah ada
+                // * VERSI 1 spreadsheet
+                $idSpreadSheet = Configuration::$ID_SPREADSHEET;
 
-                    // bikin header table history
-                    $this->spreadSheetService->makeNewHeaderColumn(
-                        $idSpreadSheet,
-                        ['Tanggal', 'No Hp', 'Nama Customer', 'Barang', 'Status', 'Jumlah'],
-                        'Sheet1!A1:F'
-                    );
+                // insert data ke table exel jika belum ada data
+                if (!$dataExist) {
+
+                    /**
+                     * insert data ke google sheet jika didalam table tidak ada datanya
+                     */
 
                     $this->spreadSheetService->insertNewRow($idSpreadSheet, [
                         [
                             $tanggal, $custPhoneNumber, $custName, $nameProduct['name'], $status_keeping, $jumlah
                         ]
-                    ], 'Sheet1');
-
-                    // bikin header table stock
-                    $this->spreadSheetService->makeNewHeaderColumn(
-                        $idSpreadSheet,
-                        ['Nomor Telpon', 'Nama Customer', 'Barang', 'Jumlah'],
-                        'Sheet1!I1:L'
-                    );
+                    ], 'Sheet1!A1:F');
 
                     $this->spreadSheetService->insertNewRow($idSpreadSheet, [
                         [
                             $custPhoneNumber, $custName, $nameProduct['name'], $jumlah
                         ]
                     ], 'Sheet1!I1:L');
-
-
-
-                    $id = Uuid::generate()->string;
-                    $query = 'INSERT INTO tb_spreadsheet_version (id_spreadsheet, id_google_spreadsheet, tanggal) VALUES (:id, :id_spreadsheet, :tanggal)';
-                    try {
-                        $this->database->conn->beginTransaction();
-                        $this->database->query($query);
-                        $this->database->bindData(':id', $id);
-                        $this->database->bindData(':id_spreadsheet', $idSpreadSheet);
-                        $this->database->bindData(':tanggal', $dateUpload);
-                        $this->database->execute();
-                        $this->database->conn->commit();
-                    } catch (PDOException $e) {
-                        if ($this->database->conn->inTransaction()) {
-                            $this->database->conn->rollBack();
-                        }
-                    }
                 } else {
-
-                    $query = 'SELECT id_google_spreadsheet FROM tb_spreadsheet_version WHERE tanggal = :tanggal';
-                    $this->database->query($query);
-                    $this->database->bindData(':tanggal', $dateUpload);
-                    $result = $this->database->fetch();
-                    $idSpreadSheet = $result['id_google_spreadsheet'];
-
-
-                    // insert data ke table exel jika belum ada data
-                    if (!$dataExist) {
-
-                        /**
-                         * insert data ke google sheet jika didalam table tidak ada datanya
-                         */
-
-                        $this->spreadSheetService->insertNewRow($idSpreadSheet, [
-                            [
-                                $tanggal, $custPhoneNumber, $custName, $nameProduct['name'], $status_keeping, $jumlah
-                            ]
-                        ], 'Sheet1!A1:F');
-
-                        $this->spreadSheetService->insertNewRow($idSpreadSheet, [
-                            [
-                                $custPhoneNumber, $custName, $nameProduct['name'], $jumlah
-                            ]
-                        ], 'Sheet1!I1:L');
-                    } else {
-                        $this->spreadSheetService->insertNewRow($idSpreadSheet, [
-                            [
-                                $tanggal, $custPhoneNumber, $custName, $nameProduct['name'], $status_keeping, $jumlah
-                            ]
-                        ], 'Sheet1!A1:F');
+                    $this->spreadSheetService->insertNewRow($idSpreadSheet, [
+                        [
+                            $tanggal, $custPhoneNumber, $custName, $nameProduct['name'], $status_keeping, $jumlah
+                        ]
+                    ], 'Sheet1!A1:F');
 
 
 
-                        $this->spreadSheetService->update(
-                            $idSpreadSheet,
-                            [
-                                $custPhoneNumber, $custName, $nameProduct['name'], $total
-                            ],
-                            $custPhoneNumber,
-                            $nameProduct['name'],
-                            'Sheet1!I1:L'
-                        );
-                    }
+                    $this->spreadSheetService->update(
+                        $idSpreadSheet,
+                        [
+                            $custPhoneNumber, $custName, $nameProduct['name'], $total
+                        ],
+                        $custPhoneNumber,
+                        $nameProduct['name'],
+                        'Sheet1!I1:L'
+                    );
                 }
+
+                // spreadsheet baru dengan berhasil dibuat
+                // * versi buat spreadsheet baru setiap ganti bulan
+                // $result = $this->makeSpreadSheet();
+                // if ($result) {
+                //     $idSpreadSheet = $result;
+
+                //     // bikin header table history
+                //     $this->spreadSheetService->makeNewHeaderColumn(
+                //         $idSpreadSheet,
+                //         ['Tanggal', 'No Hp', 'Nama Customer', 'Barang', 'Status', 'Jumlah'],
+                //         'Sheet1!A1:F'
+                //     );
+
+                //     $this->spreadSheetService->insertNewRow($idSpreadSheet, [
+                //         [
+                //             $tanggal, $custPhoneNumber, $custName, $nameProduct['name'], $status_keeping, $jumlah
+                //         ]
+                //     ], 'Sheet1');
+
+                //     // bikin header table stock
+                //     $this->spreadSheetService->makeNewHeaderColumn(
+                //         $idSpreadSheet,
+                //         ['Nomor Telpon', 'Nama Customer', 'Barang', 'Jumlah'],
+                //         'Sheet1!I1:L'
+                //     );
+
+                //     $this->spreadSheetService->insertNewRow($idSpreadSheet, [
+                //         [
+                //             $custPhoneNumber, $custName, $nameProduct['name'], $jumlah
+                //         ]
+                //     ], 'Sheet1!I1:L');
+
+
+
+                //     $id = Uuid::generate()->string;
+                //     $query = 'INSERT INTO tb_spreadsheet_version (id_spreadsheet, id_google_spreadsheet, tanggal) VALUES (:id, :id_spreadsheet, :tanggal)';
+                //     try {
+                //         $this->database->conn->beginTransaction();
+                //         $this->database->query($query);
+                //         $this->database->bindData(':id', $id);
+                //         $this->database->bindData(':id_spreadsheet', $idSpreadSheet);
+                //         $this->database->bindData(':tanggal', $dateUpload);
+                //         $this->database->execute();
+                //         $this->database->conn->commit();
+                //     } catch (PDOException $e) {
+                //         if ($this->database->conn->inTransaction()) {
+                //             $this->database->conn->rollBack();
+                //         }
+                //     }
+                // } else {
+
+                //     $query = 'SELECT id_google_spreadsheet FROM tb_spreadsheet_version WHERE tanggal = :tanggal';
+                //     $this->database->query($query);
+                //     $this->database->bindData(':tanggal', $dateUpload);
+                //     $result = $this->database->fetch();
+                //     $idSpreadSheet = $result['id_google_spreadsheet'];
+
+
+                //     // insert data ke table exel jika belum ada data
+                //     if (!$dataExist) {
+
+                //         /**
+                //          * insert data ke google sheet jika didalam table tidak ada datanya
+                //          */
+
+                //         $this->spreadSheetService->insertNewRow($idSpreadSheet, [
+                //             [
+                //                 $tanggal, $custPhoneNumber, $custName, $nameProduct['name'], $status_keeping, $jumlah
+                //             ]
+                //         ], 'Sheet1!A1:F');
+
+                //         $this->spreadSheetService->insertNewRow($idSpreadSheet, [
+                //             [
+                //                 $custPhoneNumber, $custName, $nameProduct['name'], $jumlah
+                //             ]
+                //         ], 'Sheet1!I1:L');
+                //     } else {
+                //         $this->spreadSheetService->insertNewRow($idSpreadSheet, [
+                //             [
+                //                 $tanggal, $custPhoneNumber, $custName, $nameProduct['name'], $status_keeping, $jumlah
+                //             ]
+                //         ], 'Sheet1!A1:F');
+
+
+
+                //         $this->spreadSheetService->update(
+                //             $idSpreadSheet,
+                //             [
+                //                 $custPhoneNumber, $custName, $nameProduct['name'], $total
+                //             ],
+                //             $custPhoneNumber,
+                //             $nameProduct['name'],
+                //             'Sheet1!I1:L'
+                //         );
+                //     }
+                // }
             }
 
             http_response_code(200);
@@ -812,11 +853,12 @@ class KeepingController
 
 
         /**
-         * save to spreadsheet 
+         * save to spreadsheet
          * check terlebih dahulu untuk membuat spreadsheet baru
          */
 
         $tanggal = date('Y-m');
+        // $tanggal = '2023-11';
         $query = 'SELECT COUNT(id_keeping) AS count FROM tb_history_keeping WHERE tanggal LIKE :tanggal';
         $this->database->query($query);
         $this->database->bindData(':tanggal', "%{$tanggal}%");
@@ -828,7 +870,7 @@ class KeepingController
          */
         if ($count <= 1) {
             $name = "LAPORANSTOCK{$tanggal}";
-            $rs = $this->spreadSheetService->createNewSpreadSheet($name, 'senjakasir@gmail.com');
+            $rs = $this->spreadSheetService->createNewSpreadSheet($name, 'feriwnarta26@gmail.com');
             return $rs;
         }
 
@@ -1065,11 +1107,13 @@ class KeepingController
                 $nameProduct = $this->database->fetch();
 
                 $dateUpload = date('Y-m');
-                $query = 'SELECT id_google_spreadsheet FROM tb_spreadsheet_version WHERE tanggal = :tanggal';
-                $this->database->query($query);
-                $this->database->bindData(':tanggal', $dateUpload);
-                $result = $this->database->fetch();
-                $idSpreadSheet = $result['id_google_spreadsheet'];
+                // * VERSI BUAT SPREADSHEET BARU
+                // $query = 'SELECT id_google_spreadsheet FROM tb_spreadsheet_version WHERE tanggal = :tanggal';
+                // $this->database->query($query);
+                // $this->database->bindData(':tanggal', $dateUpload);
+                // $result = $this->database->fetch();
+                // $idSpreadSheet = $result['id_google_spreadsheet'];
+                $idSpreadSheet = Configuration::$ID_SPREADSHEET;
 
                 // update sheet table stock
                 $this->spreadSheetService->update(
@@ -1158,7 +1202,7 @@ class KeepingController
         // minus
         if ($productCount < 0) {
 
-            if($this->database->conn->inTransaction()) {
+            if ($this->database->conn->inTransaction()) {
                 $this->database->conn->rollBack();
             }
 

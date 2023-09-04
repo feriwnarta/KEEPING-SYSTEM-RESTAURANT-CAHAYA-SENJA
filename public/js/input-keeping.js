@@ -19,6 +19,8 @@ function searchMenu() {
 
       if(val == '') {
         defaultSearch();
+        isSearch = false;
+        console.log(isSearch);
         return;
       }
 
@@ -43,6 +45,7 @@ function requestSearchMenu(jsonData) {
         hideLoading();
 
         if(allMenu.length == 0) {
+          isSearch = false;
           return;
         }
 
@@ -347,7 +350,7 @@ function sendButtonKeepingClicked() {
 
     let custName = $(".input-name-cust").val();
     let custPhoneNumber = $(".input-cust-number-phone").val();
-    
+
     data = [];
 
     // get data keeping terupdate

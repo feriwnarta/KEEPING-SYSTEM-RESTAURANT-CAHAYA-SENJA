@@ -16,7 +16,7 @@ class WhatsappBlastController
     }
 
     public function test() {
-        $id = $this->spreadsheet->createNewSpreadSheet('tester', 'senjakasir@gmail.com');
+        $id = $this->spreadsheet->createNewSpreadSheet('LAPORANSTOCK2023-11', 'senjakasir@gmail.com');
         $this->spreadsheet->makeNewHeaderColumn($id, ['Tanggal', 'No Hp', 'Nama Customer', 'Barang', 'Status', 'Jumlah'],
         'Sheet1!A1:F');
     }

@@ -33,5 +33,7 @@ $(function () {
   }
 });
 
-
+function closeSweetAlert() {
+  Swal.close();
+}
 

@@ -1,6 +1,12 @@
 let id = "";
+let isFormProcessing = false;
 
 $(function () {});
+
+function sweetAlertDestroy() {
+  // Menutup SweetAlert menggunakan fungsi close()
+  Swal.close();
+}
 
 function outKeeping(obj) {
   id = obj.getAttribute("value");
@@ -17,6 +23,7 @@ function outKeeping(obj) {
     data: jsonData,
     dataType: "JSON",
     success: function (response) {
+      sweetAlertDestroy();
       let html = `
         <div class="row" id="${response.body.phone_number}">
               <div class="col-12 item" id="${response.body.id_keeping}">
@@ -100,6 +107,27 @@ function stepDown(event, button, val) {
   }
 }
 
+$(document).ajaxStart(function () {
+  Swal.fire({
+    html: `
+    <div style="display: flex; justify-content: center; align-items: center; height: 100px;">
+    <div style="width: 3rem; height: 3rem;" class="spinner-border text-warning" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+  
+    `,
+    showCancelButton: false,
+    showConfirmButton: false,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    customClass: {
+      popup: "swal-custom-popup",
+      content: "swal-custom-content",
+    },
+  });
+});
+
 function processOut() {
   let phoneNumber = $(".list-product .row").attr("id");
   let id = $(".list-product .item").attr("id");
@@ -113,91 +141,70 @@ function processOut() {
     val: val,
   });
 
-  $(document).ajaxStart(function () {
-    Swal.fire({
-      html: `
-      <div style="display: flex; justify-content: center; align-items: center; height: 100px;">
-      <div style="width: 3rem; height: 3rem;" class="spinner-border text-warning" role="status">
-        <span class="visually-hidden">Loading...</span>
-      </div>
-    </div>
-    
-      `,
-      showCancelButton: false,
-      showConfirmButton: false,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      customClass: {
-        popup: "swal-custom-popup",
-        content: "swal-custom-content",
-      },
-      onOpen: () => {
-        document.getElementsByClassName(
-          "swal-custom-popup"
-        )[0].style.overflowY = "auto";
-        document.getElementsByClassName("swal-custom-content")[0].style.height =
-          "auto";
-      },
-      onBeforeOpen: () => {
-        Swal.showLoading();
-      },
-    });
-  });
+  if (isFormProcessing == false) {
+    isFormProcessing = true;
 
-  $.ajax({
-    type: "POST",
-    url: "process-out",
-    data: data,
-    dataType: "JSON",
-    success: function (response) {
-      if (
-        response.status == "success" &&
-        response.message == "berhasil keluarkan barang"
-      ) {
-        Swal.fire({
-          icon: "success",
-          title: "Berhasil keluarkan barang",
-          showConfirmButton: true,
+    $.ajax({
+      type: "POST",
+      url: "process-out",
+      data: data,
+      dataType: "JSON",
+      success: function (response) {
+        if (
+          response.status == "success" &&
+          response.message == "berhasil keluarkan barang"
+        ) {
+          Swal.fire({
+            icon: "success",
+            title: "Berhasil keluarkan barang",
+            showConfirmButton: true,
 
-          didClose: () => {
-            location.reload();
-          },
-        });
-      }
-    },
-    error: function (xhr, status, error) {
-      // Handle error response
-      if (xhr.status === 400) {
-        if (JSON.parse(xhr.responseText).message == "gagal keluarkan barang") {
-          Swal.fire({
-            icon: "error",
-            title: "Gagal keluarkan barang",
-            showConfirmButton: true,
-            didClose: () => {
-              location.reload();
-            },
-          });
-        } else if (JSON.parse(xhr.responseText).message == "minus stock out keeping") {
-          Swal.fire({
-            icon: "error",
-            title: "Error minus stock",
-            text: 'Ada yang salah saat mengeluarkan barang sehingga menyebabkan stock minus. pastikan tidak terjadi double click dan pastikan koneksi internet yang lancar',
-            showConfirmButton: true,
-            didClose: () => {
-              location.reload();
-            },
-          });
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "Ada sesuatu yang salah",
-            showConfirmButton: true,
             didClose: () => {
               location.reload();
             },
           });
         }
-      }
-    },
-  });
+      },
+      error: function (xhr, status, error) {
+        // Handle error response
+        if (xhr.status === 400) {
+          if (
+            JSON.parse(xhr.responseText).message == "gagal keluarkan barang"
+          ) {
+            Swal.fire({
+              icon: "error",
+              title: "Gagal keluarkan barang",
+              showConfirmButton: true,
+              didClose: () => {
+                location.reload();
+              },
+            });
+          } else if (
+            JSON.parse(xhr.responseText).message == "minus stock out keeping"
+          ) {
+            Swal.fire({
+              icon: "error",
+              title: "Error minus stock",
+              text: "Ada yang salah saat mengeluarkan barang sehingga menyebabkan stock minus. pastikan tidak terjadi double click dan pastikan koneksi internet yang lancar",
+              showConfirmButton: true,
+              didClose: () => {
+                location.reload();
+              },
+            });
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: "Ada sesuatu yang salah",
+              showConfirmButton: true,
+              didClose: () => {
+                location.reload();
+              },
+            });
+          }
+        }
+      },
+    });
+  }
+
+  isFormProcessing = false;
 }
